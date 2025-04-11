@@ -23,6 +23,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('discounts', function (Blueprint $table) {
+            $table->id('id_discount');
+            $table->foreignId('id_institution')
+                ->constrained('institutions', 'id_institution')
+                ->onDelete('restrict');
+            $table->string('code');
+            $table->string('discount_type');
+            $table->string('discount_value');
+            $table->string('max_uses');
+            $table->date('expires_at');
+            $table->timestamps();
+        });
+
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id('id_supplier');
             $table->string('name');
