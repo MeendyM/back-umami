@@ -15,11 +15,14 @@ return new class extends Migration
             $table->foreignId('id_rol')
                 ->constrained('roles', 'id_rol')
                 ->onDelete('cascade');
+
             $table->foreignId('id_institution')
+                ->nullable() // <- permite valores null
                 ->constrained('institutions', 'id_institution')
                 ->onDelete('cascade');
         });
     }
+
 
     /**
      * Reverse the migrations.
