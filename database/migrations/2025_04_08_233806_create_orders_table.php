@@ -21,6 +21,9 @@ return new class extends Migration
             $table->foreignId('id_discount')
                 ->constrained('discounts', 'id_discount')
                 ->onDelete('cascade');
+            $table->foreignId('id_payment_type')
+                ->constrained('payment_types', 'id_payment_type')
+                ->onDelete('cascade');
             $table->decimal('discount_amount', 10, 2);
             $table->decimal('final_total', 10, 2);
             $table->timestamps();

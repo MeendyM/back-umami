@@ -47,6 +47,11 @@ return new class extends Migration
             $table->string('name');
             $table->timestamps();
         });
+
+        Schema::create('payment_types', function (Blueprint $table) {
+            $table->id('id_payment_type');
+            $table->string('name');
+        });
     }
 
     /**
