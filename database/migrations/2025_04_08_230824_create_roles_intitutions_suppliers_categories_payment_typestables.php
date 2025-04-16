@@ -53,6 +53,12 @@ return new class extends Migration
             $table->string('name');
             $table->timestamps();
         });
+
+        Schema::create('status_orders', function (Blueprint $table) {
+            $table->id('id_status_order');
+            $table->string('name');
+            $table->timestamps();
+        });
     }
 
     /**

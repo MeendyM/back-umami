@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\OrderStatus;
+use App\Models\StatusOrder;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -27,7 +29,8 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             UserSeeder::class,
             ProductSeeder::class,
-            PaymentTypeSeeder::class
+            PaymentTypeSeeder::class,
+            StatusOrderSeeder::class,
         ]);
     }
 }
