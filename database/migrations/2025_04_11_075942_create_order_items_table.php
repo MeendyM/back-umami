@@ -21,6 +21,8 @@ return new class extends Migration
                 ->onDelete('cascade');
             $table->decimal('quantity', 10, 2);
             $table->decimal('subtotal', 10, 2);
+            $table->boolean('is_customized')->default(false);
+            $table->string('custom_text')->nullable();
             $table->timestamps();
         });
     }
