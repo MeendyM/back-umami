@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use phpDocumentor\Reflection\Types\Nullable;
 
 return new class extends Migration
 {
@@ -16,16 +17,20 @@ return new class extends Migration
             $table->foreignId('id_user')
                 ->constrained('users', 'id_user')
                 ->onDelete('cascade');
-            $table->string('status');
-            $table->decimal('total', 10, 2);
+            $table->foreignId('id_status_order')
+                ->constrained('status_orders', 'id_status_order')
+                ->onDelete('cascade');
+            $table->decimal('total', 10, 2)->nullable();
             $table->foreignId('id_discount')
+                ->nullable()
                 ->constrained('discounts', 'id_discount')
                 ->onDelete('cascade');
             $table->foreignId('id_payment_type')
+                ->nullable()
                 ->constrained('payment_types', 'id_payment_type')
                 ->onDelete('cascade');
-            $table->decimal('discount_amount', 10, 2);
-            $table->decimal('final_total', 10, 2);
+            $table->decimal('discount_amount', 10, 2)->nullable();
+            $table->decimal('final_total', 10, 2)->nullable();
             $table->timestamps();
         });
     }
