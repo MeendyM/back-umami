@@ -13,7 +13,9 @@ class OrderItem extends Model
         'id_order', //Llave foranea a la tabla de ordenes 
         'id_product', //Llave foranea a la tabla de productos 
         'quantity',
-        'subtotal'
+        'subtotal',
+        'is_customized',
+        'custom_text'
     ];
 
     public function order()

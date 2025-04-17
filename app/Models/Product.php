@@ -9,6 +9,8 @@ class Product extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id_product';
+
     // Especificamos los campos que se pueden asignar masivamente
     protected $fillable = [
         'name',

@@ -31,5 +31,12 @@ class UserSeeder extends Seeder
             'name' => 'Buyer',
             'id_rol' => 3,
         ]);
+
+        User::create([
+            'email' => 'embh2910@gmail.com',
+            'password' => Hash::make('1234'),
+            'name' => 'Ruben Ramirez Hernandez',
+            'id_rol' => 1,
+        ]);
     }
 }
