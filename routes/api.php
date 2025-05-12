@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderItemController;
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -14,11 +15,13 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/orderItems/{order}', [OrderController::class, 'products']);
 
+
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Categorías
-    
+
     Route::post('/categories', [AdminController::class, 'storeCategory']);
     Route::put('/categories/{category}', [AdminController::class, 'updateCategory']);
     Route::delete('/categories/{category}', [AdminController::class, 'destroyCategory']);
@@ -30,8 +33,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/institutions/{institution}', [AdminController::class, 'destroyInstitution']);
 
     // Proveedores
-    
+
     Route::post('/suppliers', [AdminController::class, 'storeSupplier']);
     Route::put('/suppliers/{supplier}', [AdminController::class, 'updateSupplier']);
     Route::delete('/suppliers/{supplier}', [AdminController::class, 'destroySupplier']);
+
+    //Items
+    Route::Post('/orderItems', [OrderItemController::class, 'addProduct']);
 });

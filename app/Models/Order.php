@@ -14,7 +14,7 @@ class Order extends Model
     // Campos para asignar masivamente
     protected $fillable = [
         'id_user',
-        'status',
+        'id_status_order',
         'total',
         'id_discount',
         'id_payment_type',

@@ -9,6 +9,8 @@ class OrderItem extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id_order_item';
+
     protected $fillable = [
         'id_order', //Llave foranea a la tabla de ordenes 
         'id_product', //Llave foranea a la tabla de productos 
