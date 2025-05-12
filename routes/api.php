@@ -11,10 +11,6 @@ use App\Http\Controllers\Api\OrderItemController;
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 
-//Ordenes
-Route::get('/orders', [OrderController::class, 'index']);
-Route::get('/orders/orderItems/{order}', [OrderController::class, 'products']);
-
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -37,6 +33,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/suppliers', [AdminController::class, 'storeSupplier']);
     Route::put('/suppliers/{supplier}', [AdminController::class, 'updateSupplier']);
     Route::delete('/suppliers/{supplier}', [AdminController::class, 'destroySupplier']);
+
+    //Ordenes
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/orderItems/{order}', [OrderController::class, 'products']);
 
     //Items
     Route::Post('/orderItems', [OrderItemController::class, 'addProduct']);
