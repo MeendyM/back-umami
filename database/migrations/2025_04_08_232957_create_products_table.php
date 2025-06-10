@@ -17,12 +17,9 @@ return new class extends Migration
             $table->string('description');
             $table->decimal('price', 10, 2);
             $table->string('url_imagen');
-            $table->foreignId('id_supplier')
-                ->constrained('suppliers', 'id_supplier')
-                ->onDelete('cascade');
-            $table->foreignId('id_category')
-                ->constrained('categories', 'id_category')
-                ->onDelete('cascade');
+            $table->foreignId('id_supplier')->constrained('suppliers', 'id_supplier')->onDelete('cascade');
+            $table->string('category');
+            $table->boolean('is_customized')->default(false);
             $table->timestamps();
         });
     }

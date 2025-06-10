@@ -2,24 +2,28 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Discount extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id_discount';
+
     protected $fillable = [
-        'id_institution', //Llave foranea a la tabla de insitutciones 
         'code',
-        'discount_type',
-        'discount_value',
+        'type',
+        'value',
         'max_uses',
-        'expires_at'
+        'expires_at',
     ];
 
-    public function institution()
+    protected $dates = ['expires_at'];
+
+    // Relación: Un descuento puede estar en varios pedidos
+    public function orders()
     {
-        return $this->belongsTo(Institution::class, 'id_institution');
+        return $this->hasMany(Order::class, 'id_discount', 'id_discount');
     }
 }

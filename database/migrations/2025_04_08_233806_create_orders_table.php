@@ -14,21 +14,11 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id('id_order');
-            $table->foreignId('id_user')
-                ->constrained('users', 'id_user')
-                ->onDelete('cascade');
-            $table->foreignId('id_status_order')
-                ->constrained('status_orders', 'id_status_order')
-                ->onDelete('cascade');
+            $table->foreignId('id_user')->constrained('users', 'id_user')->onDelete('cascade');
+            $table->string('status');
             $table->decimal('total', 10, 2)->nullable();
-            $table->foreignId('id_discount')
-                ->nullable()
-                ->constrained('discounts', 'id_discount')
-                ->onDelete('cascade');
-            $table->foreignId('id_payment_type')
-                ->nullable()
-                ->constrained('payment_types', 'id_payment_type')
-                ->onDelete('cascade');
+            $table->foreignId('id_discount')->nullable()->constrained('discounts', 'id_discount')->onDelete('cascade');
+            $table->string('payment_type');
             $table->decimal('discount_amount', 10, 2)->nullable();
             $table->decimal('final_total', 10, 2)->nullable();
             $table->timestamps();

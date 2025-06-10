@@ -13,10 +13,9 @@ class ProductSeeder extends Seeder
     {
         // Obtener proveedores y categorías
         $suppliers = Supplier::all();
-        $categories = Category::all();
 
         // Asegúrate de tener por lo menos un proveedor y una categoría en la base de datos
-        if ($suppliers->isEmpty() || $categories->isEmpty()) {
+        if ($suppliers->isEmpty() ) {
             $this->command->info('No hay proveedores o categorías para asignar productos');
             return;
         }
@@ -28,7 +27,6 @@ class ProductSeeder extends Seeder
             'price' => 120.00,
             'url_imagen' => 'https://example.com/chef-knife.jpg',
             'id_supplier' => $suppliers->first()->id_supplier, // Asignar primer proveedor
-            'id_category' => $categories->first()->id_category, // Asignar primera categoría
         ]);
 
         Product::create([
@@ -37,7 +35,6 @@ class ProductSeeder extends Seeder
             'price' => 100.00,
             'url_imagen' => 'https://example.com/santoku-knife.jpg',
             'id_supplier' => $suppliers->skip(1)->first()->id_supplier, // Asignar segundo proveedor
-            'id_category' => $categories->skip(1)->first()->id_category, // Asignar segunda categoría
         ]);
 
         Product::create([
@@ -46,7 +43,6 @@ class ProductSeeder extends Seeder
             'price' => 200.00,
             'url_imagen' => 'https://example.com/knife-set.jpg',
             'id_supplier' => $suppliers->skip(2)->first()->id_supplier, // Asignar tercer proveedor
-            'id_category' => $categories->first()->id_category,
         ]);
 
         Product::create([
@@ -55,7 +51,6 @@ class ProductSeeder extends Seeder
             'price' => 30.00,
             'url_imagen' => 'https://example.com/cooking-apron.jpg',
             'id_supplier' => $suppliers->skip(3)->first()->id_supplier, // Asignar cuarto proveedor
-            'id_category' => $categories->skip(1)->first()->id_category,
         ]);
 
         Product::create([
@@ -64,7 +59,6 @@ class ProductSeeder extends Seeder
             'price' => 45.00,
             'url_imagen' => 'https://example.com/gourmet-salt.jpg',
             'id_supplier' => $suppliers->skip(4)->first()->id_supplier, // Asignar quinto proveedor
-            'id_category' => $categories->first()->id_category,
         ]);
     }
 }

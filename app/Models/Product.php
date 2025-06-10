@@ -2,33 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory;
-
     protected $primaryKey = 'id_product';
 
-    // Especificamos los campos que se pueden asignar masivamente
-    protected $fillable = [
-        'name',
-        'description',
-        'price',
-        'url_imagen',
-        'id_supplier',
-        'id_category',
-    ];
+    protected $fillable = ['name', 'description', 'price', 'url_imagen', 'id_supplier', 'category', 'is_customized'];
 
-    // Definimos las relaciones con los modelos Supplier y Category
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'id_supplier');
     }
 
-    public function category()
+    public function orderItems()
     {
-        return $this->belongsTo(Category::class, 'id_category');
+        return $this->hasMany(OrderItem::class, 'id_product');
     }
 }

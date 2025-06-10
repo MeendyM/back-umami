@@ -11,11 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id('id_rol');
-            $table->string('name');
-            $table->timestamps();
-        });
+
 
         Schema::create('institutions', function (Blueprint $table) {
             $table->id('id_institution');
@@ -25,12 +21,9 @@ return new class extends Migration
 
         Schema::create('discounts', function (Blueprint $table) {
             $table->id('id_discount');
-            $table->foreignId('id_institution')
-                ->constrained('institutions', 'id_institution')
-                ->onDelete('restrict');
             $table->string('code');
-            $table->string('discount_type');
-            $table->string('discount_value');
+            $table->string('type');
+            $table->string('value');
             $table->string('max_uses');
             $table->date('expires_at');
             $table->timestamps();
@@ -42,23 +35,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id('id_category');
-            $table->string('name');
-            $table->timestamps();
-        });
-
-        Schema::create('payment_types', function (Blueprint $table) {
-            $table->id('id_payment_type');
-            $table->string('name');
-            $table->timestamps();
-        });
-
-        Schema::create('status_orders', function (Blueprint $table) {
-            $table->id('id_status_order');
-            $table->string('name');
-            $table->timestamps();
-        });
     }
 
     /**

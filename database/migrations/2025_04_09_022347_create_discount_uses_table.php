@@ -13,15 +13,9 @@ return new class extends Migration
     {
         Schema::create('discount_uses', function (Blueprint $table) {
             $table->id('id_discount_use');
-            $table->foreignId('id_discount')
-                ->constrained('discounts', 'id_discount')
-                ->onDelete('cascade');
-            $table->foreignId('id_order')
-                ->constrained('orders', 'id_order')
-                ->onDelete('cascade');
-            $table->foreignId('id_user')
-                ->constrained('users', 'id_user')
-                ->onDelete('cascade');
+            $table->foreignId('id_discount')->constrained('discounts', 'id_discount')->onDelete('cascade');
+            $table->foreignId('id_order')->constrained('orders', 'id_order')->onDelete('cascade');
+            $table->foreignId('id_user')->constrained('users', 'id_user')->onDelete('cascade');
             $table->date('use_at');
             $table->timestamps();
         });

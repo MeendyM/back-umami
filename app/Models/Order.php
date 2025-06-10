@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
@@ -11,34 +11,40 @@ class Order extends Model
 
     protected $primaryKey = 'id_order';
 
-    // Campos para asignar masivamente
     protected $fillable = [
         'id_user',
-        'id_status_order',
-        'total',
         'id_discount',
-        'id_payment_type',
+        'status',
+        'total',
+        'payment_type',
         'discount_amount',
-        'final_total'
+        'final_total',
     ];
 
+    // Relación: Orden pertenece a un usuario
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
     }
 
+    // Relación: Orden puede tener un descuento
     public function discount()
     {
-        return $this->belongsTo(Discount::class, 'id_discount');
+        return $this->belongsTo(Discount::class, 'id_discount', 'id_discount');
     }
 
-    public function paymentType()
+     public function orderItems()
     {
-        return $this->belongsTo(PaymentType::class, 'id_payment_type');
+        return $this->hasMany(OrderItem::class, 'id_order');
     }
 
-    public function status()
+    public function receips()
     {
-        return $this->belongsTo(StatusOrder::class, 'id_status_order');
+        return $this->hasMany(Receip::class, 'id_order');
+    }
+
+    public function discountUses()
+    {
+        return $this->hasMany(DiscountUse::class, 'id_order');
     }
 }

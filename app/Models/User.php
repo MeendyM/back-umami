@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\TypeUser;
+
 
 class User extends Authenticatable
 {
@@ -28,7 +30,7 @@ class User extends Authenticatable
         'email_verified_at',
         'current_team_id',
         'profile_photo_path',
-        'id_rol',
+        'type',
         'id_institution',
     ];
 
@@ -66,13 +68,28 @@ class User extends Authenticatable
         ];
     }
 
-    public function role()
-    {
-        return $this->belongsTo(Role::class, 'id_rol');
-    }
 
     public function institution()
     {
         return $this->belongsTo(Institution::class, 'id_institution');
+    }
+
+    public function cart()
+    {
+        return $this->hasOne(Cart::class, 'id_user');
+    }
+    protected static function booted()
+    {
+        static::created(function (User $user) {
+            if (
+                $user->type === TypeUser::STUDENT->value ||
+                $user->type === TypeUser::CLIENT->value
+            ) {
+                Cart::create([
+                    'id_user' => $user->id_user,
+                    'id_order_item' => null, // Carrito vacío
+                ]);
+            }
+        });
     }
 }
