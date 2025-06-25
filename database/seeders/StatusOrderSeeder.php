@@ -17,7 +17,7 @@ class StatusOrderSeeder extends Seeder
         ];
 
         foreach ($statusOrder as $status) {
-            StatusOrder::create(['name' => $status]);
+           // StatusOrder::create(['name' => $status]);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CategoryProduct;
 use Illuminate\Database\Seeder;
 use App\Models\Product;
 use App\Models\Supplier;
@@ -27,6 +28,7 @@ class ProductSeeder extends Seeder
             'price' => 120.00,
             'url_imagen' => 'https://example.com/chef-knife.jpg',
             'id_supplier' => $suppliers->first()->id_supplier, // Asignar primer proveedor
+            'category' => CategoryProduct::KNIVES->value // Asignar categoría de cuchillos
         ]);
 
         Product::create([
@@ -35,6 +37,7 @@ class ProductSeeder extends Seeder
             'price' => 100.00,
             'url_imagen' => 'https://example.com/santoku-knife.jpg',
             'id_supplier' => $suppliers->skip(1)->first()->id_supplier, // Asignar segundo proveedor
+            'category' => CategoryProduct::KNIVES->value // Asignar categoría de cuchillos
         ]);
 
         Product::create([
@@ -43,6 +46,7 @@ class ProductSeeder extends Seeder
             'price' => 200.00,
             'url_imagen' => 'https://example.com/knife-set.jpg',
             'id_supplier' => $suppliers->skip(2)->first()->id_supplier, // Asignar tercer proveedor
+            'category' => CategoryProduct::KNIVES->value // Asignar categoría de cuchillos
         ]);
 
         Product::create([
@@ -51,6 +55,7 @@ class ProductSeeder extends Seeder
             'price' => 30.00,
             'url_imagen' => 'https://example.com/cooking-apron.jpg',
             'id_supplier' => $suppliers->skip(3)->first()->id_supplier, // Asignar cuarto proveedor
+            'category' => CategoryProduct::UNIFORMS->value // Asignar categoría de delantales
         ]);
 
         Product::create([
@@ -59,6 +64,7 @@ class ProductSeeder extends Seeder
             'price' => 45.00,
             'url_imagen' => 'https://example.com/gourmet-salt.jpg',
             'id_supplier' => $suppliers->skip(4)->first()->id_supplier, // Asignar quinto proveedor
+            'category' => CategoryProduct::OTHERS->value // Asignar categoría de condiciones
         ]);
     }
 }

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('receips', function (Blueprint $table) {
             $table->id('id_receip');
-            $table->foreignId('id_order')->constrained('orders', 'id_order')->onDelete('cascade');
-            $table->foreignId('id_user')->constrained('users', 'id_user');
+            $table->foreignId('id_order')->nullable()->constrained('orders', 'id_order')->nullOnDelete();
+            $table->foreignId('id_user')->nullable()->constrained('users', 'id_user')->nullOnDelete();
             $table->decimal('amount', 10, 2);
             $table->string('id_transaction');
             $table->string('url_img');

@@ -14,11 +14,11 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id('id_order');
-            $table->foreignId('id_user')->constrained('users', 'id_user')->onDelete('cascade');
+            $table->foreignId('id_user')->nullable()->constrained('users', 'id_user')->nullOnDelete();
             $table->string('status');
             $table->decimal('total', 10, 2)->nullable();
-            $table->foreignId('id_discount')->nullable()->constrained('discounts', 'id_discount')->onDelete('cascade');
-            $table->string('payment_type');
+            $table->foreignId('id_discount')->nullable()->constrained('discounts', 'id_discount')->nullOnDelete();
+            $table->string('payment_type')->nullable();
             $table->decimal('discount_amount', 10, 2)->nullable();
             $table->decimal('final_total', 10, 2)->nullable();
             $table->timestamps();

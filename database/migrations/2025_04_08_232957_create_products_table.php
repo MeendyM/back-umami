@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use phpDocumentor\Reflection\Types\Nullable;
 
 return new class extends Migration
 {
@@ -17,7 +18,7 @@ return new class extends Migration
             $table->string('description');
             $table->decimal('price', 10, 2);
             $table->string('url_imagen');
-            $table->foreignId('id_supplier')->constrained('suppliers', 'id_supplier')->onDelete('cascade');
+            $table->foreignId('id_supplier')->nullable()->constrained('suppliers', 'id_supplier')->nullOnDelete();
             $table->string('category');
             $table->boolean('is_customized')->default(false);
             $table->timestamps();

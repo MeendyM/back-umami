@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('id_institution')
                 ->nullable()
                 ->constrained('institutions', 'id_institution')
-                ->onDelete('cascade');
+                ->nullOnDelete();
         });
     }
 
@@ -26,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('institutions');
     }
 };

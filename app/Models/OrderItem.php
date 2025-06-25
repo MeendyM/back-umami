@@ -8,7 +8,7 @@ class OrderItem extends Model
 {
     protected $primaryKey = 'id_order_item';
 
-    protected $fillable = ['id_order', 'id_product', 'quantity', 'subtotal', 'is_customized', 'custom_text'];
+    protected $fillable = ['id_order', 'id_product', 'quantity', 'subtotal', 'is_customized', 'custom_text','id_user'];
     //se creara la orden hasta que se confirme en el carrito id order es null (controlador que crea la orden y coloca el id order de los que estan en el carrito)
 
     public function order()

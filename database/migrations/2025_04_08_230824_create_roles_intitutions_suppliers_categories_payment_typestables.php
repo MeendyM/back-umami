@@ -42,6 +42,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles_intitutions_suppliers_tables');
+        Schema::dropIfExists('discounts');
+        Schema::dropIfExists('suppliers');
+        
     }
 };

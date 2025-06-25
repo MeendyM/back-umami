@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\StatusOrder;
 use App\Models\Order;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,17 +17,17 @@ class OrderSeeder extends Seeder
 
         Order::create([
             'id_user' => 2,
-            'id_status_order' => 2,
+            'status' => StatusOrder::REQUESTED,
         ]);
 
         Order::create([
             'id_user' => 3,
-            'id_status_order' => 2,
+            'status' => StatusOrder::REQUESTED,
         ]);
 
         Order::create([
             'id_user' => 4,
-            'id_status_order' => 2,
+            'status' => StatusOrder::REQUESTED,
         ]);
     }
 }

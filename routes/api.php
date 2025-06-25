@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\CartApiController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
 
@@ -40,4 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Items
     Route::Post('/orderItems', [OrderItemController::class, 'addProduct']);
+
+    // Carrito
+    Route::get('/cart', [CartApiController::class, 'getCart']);
+    Route::post('/cart/add', [CartApiController::class, 'addItem']);
 });

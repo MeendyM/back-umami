@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('discount_uses', function (Blueprint $table) {
             $table->id('id_discount_use');
-            $table->foreignId('id_discount')->constrained('discounts', 'id_discount')->onDelete('cascade');
-            $table->foreignId('id_order')->constrained('orders', 'id_order')->onDelete('cascade');
-            $table->foreignId('id_user')->constrained('users', 'id_user')->onDelete('cascade');
+            $table->foreignId('id_discount')->nullable()->constrained('discounts', 'id_discount')->nullOnDelete();
+            $table->foreignId('id_order')->nullable()->constrained('orders', 'id_order')->nullOnDelete();
+            $table->foreignId('id_user')->nullable()->constrained('users', 'id_user')->nullOnDelete();
             $table->date('use_at');
             $table->timestamps();
         });
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('discounts');
+        Schema::dropIfExists('discount_uses');
     }
 };
