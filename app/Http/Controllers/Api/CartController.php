@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use Illuminate\Http\Request;
-use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use Illuminate\Support\Facades\Log;
+
+use function PHPUnit\Framework\isArray;
 
 class CartController extends Controller
 {
@@ -33,60 +35,82 @@ class CartController extends Controller
     //agregar item
     public function addItem(Request $request)
     {
-        //sgregar el apartado de los customs y la cantida personalizada
-        
         $userId = $request->user()->id_user;
 
         $request->validate([
             'id_product' => 'required|integer|exists:products,id_product',
+            'customs' => 'nullable|array',
+            'customs.*' => 'string',
+            'quantity' => 'nullable|integer|min:1'
         ]);
 
-        // Buscar el producto
         $product = Product::find($request->id_product);
-        if (!$product) {
-            return response()->json(['error' => 'Producto no encontrado'], 404);
-        }
+        $quantity = $request->input('quantity', 1); // Default: 1
+        $customizations = $request->input('customs', []);
 
-        //Verificar si el producto ya está en el 'order_items' del usuario
-        $verifyItem = OrderItem::where('id_user', $userId)
+        // Caso base: Buscar si el producto ya está en el carrito del usuario
+        $existingItem = OrderItem::where('id_user', $userId)
             ->where('id_product', $product->id_product)
             ->first();
 
-        if ($verifyItem) {
+        if ($existingItem) {
+            if ($quantity === 1) {
+                // CASO 1: No se especificó cantidad, se suma 1
+                $existingItem->quantity += 1;
+                $existingItem->subtotal += $product->price;
 
-            //Si la verificacion encuentra el item, se actualiza la cantidad y el subtotal
-            $verifyItem->quantity += 1; // Incrementar la cantidad
-            $verifyItem->subtotal += $product->price; // Actualizar el subtotal
-            $verifyItem->save();
+                $new = $customizations;
+                $current = $existingItem->custom_text;
 
-            //Retornar la respuesta con el item actualizado
+                $resultado = $current + $new;
+
+                $existingItem->custom_text = $resultado;
+
+                $existingItem->save();
+
+                return response()->json([
+                    'message' => 'Producto actualizado en el carrito',
+                    'item' => $existingItem
+                ]);
+            } else {
+                // CASO 3: Se especificó cantidad personalizada, se suma a la existente
+                $existingItem->quantity += $quantity;
+                $existingItem->subtotal += $product->price * $quantity;
+
+                $existingItem->save();
+
+
+                Log::debug($existingItem->custom_text);
+            }
+
+            $existingItem->save();
+
             return response()->json([
                 'message' => 'Producto actualizado en el carrito',
-                'item' => $verifyItem
+                'item' => $existingItem
             ], 200);
-        } else {
-            //Si la verificacion no encuentra el item se crea uno nuevo
-
-            // Crear item 
-            $orderItem = OrderItem::create([
-                'id_user' => $userId,
-                'id_product' => $product->id_product,
-                'quantity' => 1,
-                'subtotal' => $product->price,
-            ]);
-
-            // Asociar el item al carrito del usuario
-            Cart::create([
-                'id_user' => $userId,
-                'id_order_item' => $orderItem->id_order_item,
-            ]);
-
-            return response()->json([
-                'message' => 'Producto agregado al carrito',
-                'item' => $orderItem
-            ], 201);
         }
+
+        // CASO 2 y 4: El producto aún no está en el carrito
+        $newItem = OrderItem::create([
+            'id_user' => $userId,
+            'id_product' => $product->id_product,
+            'quantity' => $quantity,
+            'subtotal' => $product->price * $quantity,
+            'custom_text' => $customizations,
+        ]);
+
+        Cart::create([
+            'id_user' => $userId,
+            'id_order_item' => $newItem->id_order_item,
+        ]);
+
+        return response()->json([
+            'message' => 'Producto agregado al carrito',
+            'item' => $newItem
+        ], 201);
     }
+
 
     //remover item
     public function removeItem(Request $request)
