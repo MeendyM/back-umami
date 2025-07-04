@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\StatusOrder;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Order;
@@ -255,6 +256,56 @@ class CartController extends Controller
             'quantity' => $orderItem->quantity,
             'custom_text' => $orderItem->custom_text,
             'subtotal' => $orderItem->subtotal
+        ]);
+    }
+
+    public function clear(Request $request)
+    {
+        $userId = $request->user()->id_user;
+
+        // Eliminar todos los items del carrito del usuario
+        OrderItem::where('id_user', $userId)->delete();
+        Cart::where('id_user', $userId)->delete();
+
+
+        return response()->json(['message' => 'Carrito vaciado correctamente'], 200);
+    }
+
+    public function createOrder(Request $request)
+    {
+        $userId = $request->user()->id_user;
+
+        // 1. Obtener todos los items del usuario sin orden asignada
+        $orderItems = OrderItem::where('id_user', $userId)
+            ->whereNull('id_order')
+            ->get();
+
+        if ($orderItems->isEmpty()) {
+            return response()->json(['message' => 'No hay productos en el carrito para crear la orden'], 400);
+        }
+
+        // 2. Calcular el total
+        $total = $orderItems->sum('subtotal');
+
+        $newOrder = Order::create([
+            'id_user' => $userId,
+            'status' => StatusOrder::REQUESTED->value, // Estado inicial
+            'total' => $total,
+        ]);
+
+        // 4. Actualizar los order_items con el id de la nueva orden
+        foreach ($orderItems as $item) {
+            $item->id_order = $newOrder->id_order;
+            $item->save();
+        }
+
+        // 5. Limpiar el carrito temporal
+        Cart::where('id_user', $userId)->delete();
+
+        return response()->json([
+            'message' => 'Orden solicitada exitosamente',
+            'order_id' => $newOrder->id_order,
+            'total' => $total,
         ]);
     }
 }
