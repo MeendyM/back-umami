@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
 
+use App\Http\Controllers\Api\ProductController;
+
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -47,4 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/add', [CartController::class, 'addItem']);
     Route::post('/cart/remove', [CartController::class, 'removeItem']);
     Route::get('/cart/getByUser', [CartController::class, 'getByUser']);
+
+    // Productos (paginados)
 });
+    Route::get('/products', [ProductController::class, 'index']);
