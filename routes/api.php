@@ -51,5 +51,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cart/getByUser', [CartController::class, 'getByUser']);
 
     // Productos (paginados)
+    Route::post('/cart/edit', [CartController::class, 'edit']);
+    Route::post('/cart/clear', [CartController::class, 'clearCart']);
+    Route::post('/cart/createOrder', [CartController::class, 'createOrder']);
 });
     Route::get('/products', [ProductController::class, 'index']);
