@@ -159,64 +159,45 @@ class CartController extends Controller
     {
         $userId = $request->user()->id_user;
 
-        // Buscar el item en 'order_items' del usuario
-        $orderItem = OrderItem::where('id_user', $userId)
+        Log::info('Intentando remover item del carrito', [
+            'user_id' => $userId,
+            'request' => $request->all()
+        ]);
+
+         // Buscar el item en 'order_items' del usuario
+       /* $orderItem = OrderItem::where('id_user', $userId)
             ->where('id_product', $request->id_product)
+            ->first();*/
+
+
+        // Buscar el item en 'order_items' del usuario por id_order_item
+        $orderItem = OrderItem::where('id_user', $userId)
+            ->where('id_order_item', $request->id_order_item)
             ->first();
 
+        Log::info('Item encontrado para remover', [
+            'orderItem' => $orderItem
+        ]);
+
         if (!$orderItem) {
+            Log::warning('Item no encontrado en el carrito para remover', [
+                'user_id' => $userId,
+                'id_order_item' => $request->id_order_item
+            ]);
             return response()->json(['message' => 'Item no encontrado en el carrito'], 404);
         }
 
-        //Condicion para verificar si la cantidad es mayor a 1
-        if ($orderItem->quantity > 1) {
+        // Eliminar el item del carrito y su relación en Cart siempre
+        Cart::where('id_order_item', $request->id_order_item)->delete();
+        $orderItem->delete();
 
-            $pricePerItem = Product::find($orderItem->id_product)->price;
+        Log::info('Item y relación en carrito eliminados', [
+            'id_order_item' => $request->id_order_item
+        ]);
 
-            $customs = $orderItem->custom_text;
-
-            // verificar si el array de customs tiene algo
-            if (empty($customs)) {
-                return response()->json(['message' => 'No hay customizaciones para eliminar'], 400);
-            }
-
-            // Si se especifica una clave, eliminar esa
-            if ($request->has('custom_key')) {
-                $custom_key = $request->custom_key;
-
-                if (array_key_exists($custom_key, $customs)) {
-                    unset($customs[$custom_key]);
-                } else {
-                    return response()->json(['message' => 'Clave no encontrada en custom_text'], 404);
-                }
-            } else {
-                // Si no eliminar la ultima entrada conservando claves
-                end($customs);               // Mueve el puntero interno al final
-                $lastKey = key($customs);    // Obtiene la ultima clave
-                unset($customs[$lastKey]);   // Elimina la entrada
-            }
-
-            //Si la cantidad es mayor a 1, se reduce la cantidad y se resta el subtotal
-            $orderItem->quantity -= 1; // Decrementar la cantidad
-            $orderItem->subtotal -= $pricePerItem;
-            $orderItem->custom_text = $customs;
-            $orderItem->save();
-
-            return response()->json([
-                'message' => 'Cantidad del item reducida en el carrito',
-                'item' => $orderItem
-            ], 200);
-        } else {
-            //Si la cantidad es 1, se elimina el item del carrito
-            Cart::where('id_order_item', $request->id_order_item)->delete();
-
-            //Y despues se elimina el item del order_item
-            $orderItem->delete();
-
-            return response()->json([
-                'message' => 'Item eliminado del carrito'
-            ], 200);
-        }
+        return response()->json([
+            'message' => 'Item eliminado del carrito'
+        ], 200);
     }
 
     public function edit(Request $request)
@@ -231,7 +212,7 @@ class CartController extends Controller
         $validated = $request->validate([
             'id_order_item' => 'required|integer',
             'cantidad_a_retirar' => 'required|integer|min:1',
-            'custom_key' => 'required|array'
+            'custom_key' => 'array'
         ]);
 
         $orderItem = OrderItem::where('id_user', $userId)
@@ -266,7 +247,7 @@ class CartController extends Controller
         }
 
         // 2. Verificar que se envíen tantas customizaciones como cantidad a retirar
-        if (count($validated['custom_key']) !== $cantidadARetirar) {
+      /*  if (count($validated['custom_key']) !== $cantidadARetirar) {
             Log::warning('Cantidad de customizaciones a eliminar no coincide con la cantidad a retirar', [
                 'custom_key_count' => count($validated['custom_key']),
                 'cantidad_a_retirar' => $cantidadARetirar
@@ -275,7 +256,7 @@ class CartController extends Controller
                 'message' => 'La cantidad de customizaciones a eliminar debe coincidir con la cantidad que deseas retirar'
             ], 422);
         }
-
+*/
         // 3. Verificar que todas las claves a eliminar existan
         foreach ($validated['custom_key'] as $key) {
             if (!array_key_exists($key, $customs)) {
