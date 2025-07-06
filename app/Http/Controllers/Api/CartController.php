@@ -39,6 +39,11 @@ class CartController extends Controller
     {
         $userId = $request->user()->id_user;
 
+        Log::info('Intentando agregar al carrito', [
+            'user_id' => $userId,
+            'request' => $request->all()
+        ]);
+
         $request->validate([
             'id_product' => 'required|integer|exists:products,id_product',
             'customs' => 'nullable|array',
@@ -50,10 +55,22 @@ class CartController extends Controller
         $quantity = $request->input('quantity', 1); // Default: 1
         $customizations = $request->input('customs', []);
 
+        Log::info('Producto encontrado', [
+            'product' => $product
+        ]);
+
         // Caso base: Buscar si el producto ya está en el carrito del usuario
         $existingItem = OrderItem::where('id_user', $userId)
             ->where('id_product', $product->id_product)
+            ->whereNull('id_order')
             ->first();
+
+        Log::info('Item existente en carrito', [
+            'existingItem' => $existingItem
+        ]);
+
+        // Determinar si el producto es personalizado
+        $isCustomized = (bool)($product->is_customized ?? false);
 
         if ($existingItem) {
             if ($quantity === 1) {
@@ -64,9 +81,15 @@ class CartController extends Controller
                 $new = $customizations;
                 $current = $existingItem->custom_text;
 
-                $resultado = $current + $new;
+                // Unir los textos personalizados correctamente
+                $resultado = array_merge($current ?? [], $new ?? []);
 
                 $existingItem->custom_text = $resultado;
+                $existingItem->is_customized = $isCustomized;
+
+                Log::info('Actualizando item existente (sumando 1)', [
+                    'item' => $existingItem
+                ]);
 
                 $existingItem->save();
 
@@ -82,12 +105,17 @@ class CartController extends Controller
                 $new = $customizations;
                 $current = $existingItem->custom_text;
 
-                $resultado = $current + $new;
+                // Unir los textos personalizados correctamente
+                $resultado = array_merge($current ?? [], $new ?? []);
 
                 $existingItem->custom_text = $resultado;
+                $existingItem->is_customized = $isCustomized;
+
+                Log::info('Actualizando item existente (sumando cantidad personalizada)', [
+                    'item' => $existingItem
+                ]);
 
                 $existingItem->save();
-
 
                 Log::debug($existingItem->custom_text);
             }
@@ -100,13 +128,18 @@ class CartController extends Controller
             ], 200);
         }
 
-        // CASO 2 y 4: El producto aún no está en el carrito
+        // Si existe un item pero ya tiene id_order, crear uno nuevo (nuevo ciclo de carrito)
         $newItem = OrderItem::create([
             'id_user' => $userId,
             'id_product' => $product->id_product,
             'quantity' => $quantity,
             'subtotal' => $product->price * $quantity,
             'custom_text' => $customizations,
+            'is_customized' => $isCustomized,
+        ]);
+
+        Log::info('Creando nuevo item en carrito', [
+            'newItem' => $newItem
         ]);
 
         Cart::create([
@@ -126,81 +159,75 @@ class CartController extends Controller
     {
         $userId = $request->user()->id_user;
 
-        // Buscar el item en 'order_items' del usuario
-        $orderItem = OrderItem::where('id_user', $userId)
+        Log::info('Intentando remover item del carrito', [
+            'user_id' => $userId,
+            'request' => $request->all()
+        ]);
+
+         // Buscar el item en 'order_items' del usuario
+       /* $orderItem = OrderItem::where('id_user', $userId)
             ->where('id_product', $request->id_product)
+            ->first();*/
+
+
+        // Buscar el item en 'order_items' del usuario por id_order_item
+        $orderItem = OrderItem::where('id_user', $userId)
+            ->where('id_order_item', $request->id_order_item)
             ->first();
 
+        Log::info('Item encontrado para remover', [
+            'orderItem' => $orderItem
+        ]);
+
         if (!$orderItem) {
+            Log::warning('Item no encontrado en el carrito para remover', [
+                'user_id' => $userId,
+                'id_order_item' => $request->id_order_item
+            ]);
             return response()->json(['message' => 'Item no encontrado en el carrito'], 404);
         }
 
-        //Condicion para verificar si la cantidad es mayor a 1
-        if ($orderItem->quantity > 1) {
+        // Eliminar el item del carrito y su relación en Cart siempre
+        Cart::where('id_order_item', $request->id_order_item)->delete();
+        $orderItem->delete();
 
-            $pricePerItem = Product::find($orderItem->id_product)->price;
+        Log::info('Item y relación en carrito eliminados', [
+            'id_order_item' => $request->id_order_item
+        ]);
 
-            $customs = $orderItem->custom_text;
-
-            // verificar si el array de customs tiene algo
-            if (empty($customs)) {
-                return response()->json(['message' => 'No hay customizaciones para eliminar'], 400);
-            }
-
-            // Si se especifica una clave, eliminar esa
-            if ($request->has('custom_key')) {
-                $custom_key = $request->custom_key;
-
-                if (array_key_exists($custom_key, $customs)) {
-                    unset($customs[$custom_key]);
-                } else {
-                    return response()->json(['message' => 'Clave no encontrada en custom_text'], 404);
-                }
-            } else {
-                // Si no eliminar la ultima entrada conservando claves
-                end($customs);               // Mueve el puntero interno al final
-                $lastKey = key($customs);    // Obtiene la ultima clave
-                unset($customs[$lastKey]);   // Elimina la entrada
-            }
-
-            //Si la cantidad es mayor a 1, se reduce la cantidad y se resta el subtotal
-            $orderItem->quantity -= 1; // Decrementar la cantidad
-            $orderItem->subtotal -= $pricePerItem;
-            $orderItem->custom_text = $customs;
-            $orderItem->save();
-
-            return response()->json([
-                'message' => 'Cantidad del item reducida en el carrito',
-                'item' => $orderItem
-            ], 200);
-        } else {
-            //Si la cantidad es 1, se elimina el item del carrito
-            Cart::where('id_order_item', $request->id_order_item)->delete();
-
-            //Y despues se elimina el item del order_item
-            $orderItem->delete();
-
-            return response()->json([
-                'message' => 'Item eliminado del carrito'
-            ], 200);
-        }
+        return response()->json([
+            'message' => 'Item eliminado del carrito'
+        ], 200);
     }
 
     public function edit(Request $request)
     {
         $userId = $request->user()->id_user;
 
+        Log::info('Intentando editar item del carrito', [
+            'user_id' => $userId,
+            'request' => $request->all()
+        ]);
+
         $validated = $request->validate([
-            'id_product' => 'required|integer',
+            'id_order_item' => 'required|integer',
             'cantidad_a_retirar' => 'required|integer|min:1',
-            'custom_key' => 'required|array'
+            'custom_key' => 'array'
         ]);
 
         $orderItem = OrderItem::where('id_user', $userId)
-            ->where('id_product', $validated['id_product'])
+            ->where('id_order_item', $validated['id_order_item'])
             ->first();
 
+        Log::info('Item encontrado para editar', [
+            'orderItem' => $orderItem
+        ]);
+
         if (!$orderItem) {
+            Log::warning('Item no encontrado en el carrito para editar', [
+                'user_id' => $userId,
+                'id_order_item' => $validated['id_order_item']
+            ]);
             return response()->json(['message' => 'Item no encontrado en el carrito'], 404);
         }
 
@@ -210,21 +237,33 @@ class CartController extends Controller
 
         // 1. Verificar que no se intente eliminar más productos de los que hay
         if ($cantidadARetirar >= $currentQty) {
+            Log::warning('Intento de eliminar más productos de los que hay', [
+                'cantidad_a_retirar' => $cantidadARetirar,
+                'currentQty' => $currentQty
+            ]);
             return response()->json([
                 'message' => 'No puedes eliminar más productos de los que hay en el carrito'
             ], 422);
         }
 
         // 2. Verificar que se envíen tantas customizaciones como cantidad a retirar
-        if (count($validated['custom_key']) !== $cantidadARetirar) {
+      /*  if (count($validated['custom_key']) !== $cantidadARetirar) {
+            Log::warning('Cantidad de customizaciones a eliminar no coincide con la cantidad a retirar', [
+                'custom_key_count' => count($validated['custom_key']),
+                'cantidad_a_retirar' => $cantidadARetirar
+            ]);
             return response()->json([
                 'message' => 'La cantidad de customizaciones a eliminar debe coincidir con la cantidad que deseas retirar'
             ], 422);
         }
-
+*/
         // 3. Verificar que todas las claves a eliminar existan
         foreach ($validated['custom_key'] as $key) {
             if (!array_key_exists($key, $customs)) {
+                Log::warning('Clave de customización no existe', [
+                    'key' => $key,
+                    'customs' => $customs
+                ]);
                 return response()->json([
                     'message' => "La clave '{$key}' no existe en custom_text"
                 ], 422);
@@ -240,8 +279,11 @@ class CartController extends Controller
         $orderItem->quantity -= $cantidadARetirar;
 
         // 6. Recalcular subtotal (suponiendo que tienes el modelo Product y precio unitario)
-        $product = Product::find($validated['id_product']);
+        $product = Product::find($orderItem->id_product);
         if (!$product) {
+            Log::warning('Producto no encontrado en catálogo al editar', [
+                'id_product' => $orderItem->id_product
+            ]);
             return response()->json(['message' => 'Producto no encontrado en catálogo'], 404);
         }
 
@@ -250,6 +292,10 @@ class CartController extends Controller
         // 7. Guardar cambios
         $orderItem->custom_text = $customs;
         $orderItem->save();
+
+        Log::info('Producto actualizado correctamente en el carrito', [
+            'orderItem' => $orderItem
+        ]);
 
         return response()->json([
             'message' => 'Producto actualizado correctamente',
@@ -307,5 +353,64 @@ class CartController extends Controller
             'order_id' => $newOrder->id_order,
             'total' => $total,
         ]);
+    }
+
+    public function editCustomTexts(Request $request)
+    {
+        $userId = $request->user()->id_user;
+
+        Log::info('Intentando editar textos personalizados', [
+            'user_id' => $userId,
+            'request' => $request->all()
+        ]);
+
+        $validated = $request->validate([
+            'id_order_item' => 'required|integer',
+            'custom_text' => 'required|array',
+            'custom_text.*' => 'string',
+        ]);
+
+        $orderItem = OrderItem::where('id_user', $userId)
+            ->where('id_order_item', $validated['id_order_item'])
+            ->first();
+
+        Log::info('Item encontrado para editar custom_text', [
+            'orderItem' => $orderItem
+        ]);
+
+        if (!$orderItem) {
+            Log::warning('Item no encontrado en el carrito para editar custom_text', [
+                'user_id' => $userId,
+                'id_order_item' => $validated['id_order_item']
+            ]);
+            return response()->json(['message' => 'Item no encontrado en el carrito'], 404);
+        }
+
+        // Si el producto es personalizado, la cantidad debe coincidir con la cantidad de textos
+        /*if ($orderItem->is_customized) {
+            if (count($validated['custom_text']) !== $orderItem->quantity) {
+                Log::warning('Cantidad de textos personalizados no coincide con la cantidad del producto', [
+                    'custom_text_count' => count($validated['custom_text']),
+                    'quantity' => $orderItem->quantity
+                ]);
+                return response()->json([
+                    'message' => 'La cantidad de textos personalizados debe coincidir con la cantidad del producto.'
+                ], 422);
+            }
+        }*/
+
+        $orderItem->custom_text = $validated['custom_text'];
+        $orderItem->save();
+
+        Log::info('Textos personalizados actualizados correctamente', [
+            'custom_text' => $orderItem->custom_text,
+            'quantity' => $orderItem->quantity
+        ]);
+
+        return response()->json([
+            'message' => 'Textos personalizados actualizados correctamente',
+            'custom_text' => $orderItem->custom_text,
+            'quantity' => $orderItem->quantity
+        ], 200);
     }
 }

@@ -80,16 +80,6 @@ class User extends Authenticatable
     }
     protected static function booted()
     {
-        static::created(function (User $user) {
-            if (
-                $user->type === TypeUser::STUDENT->value ||
-                $user->type === TypeUser::CLIENT->value
-            ) {
-                Cart::create([
-                    'id_user' => $user->id_user,
-                    'id_order_item' => null, // Carrito vacío
-                ]);
-            }
-        });
+
     }
 }
