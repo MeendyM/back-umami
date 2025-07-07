@@ -6,6 +6,10 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Product;
 use App\Models\Supplier;
+use Error;
+use Exception;
+use Masmerise\Toaster\Toaster;
+use PhpParser\Node\Stmt\TryCatch;
 
 class Create extends Component
 {
@@ -46,42 +50,48 @@ class Create extends Component
         $this->category = '';
         $this->id_supplier = '';
         $this->is_customized = false;
-
     }
 
     public function save()
     {
 
-        $this->validate([
-            'name' => 'required|string',
-            'description' => 'required|string',
-            'price' => 'required|numeric',
-            'category' => 'required|string',
-            'id_supplier' => 'required|exists:suppliers,id_supplier',
-            'is_customized' => 'required|boolean',
-        ],
-        [
-            'name.required' => 'El nombre del producto es obligatorio.',
-            'description.required' => 'La descripción del producto es obligatoria.',
-            'price.required' => 'El precio del producto es obligatorio.',
-            'category.required' => 'La categoría del producto es obligatoria.',
-            'id_supplier.required' => 'El proveedor del producto es obligatorio.',
-            'is_customized.required' => 'Debe indicar si el producto es personalizado.'
-        ]);
+        $this->validate(
+            [
+                'name' => 'required|string',
+                'description' => 'required|string',
+                'price' => 'required|numeric',
+                'category' => 'required|string',
+                'id_supplier' => 'required|exists:suppliers,id_supplier',
+                'is_customized' => 'required|boolean',
+            ],
+            [
+                'name.required' => 'El nombre del producto es obligatorio.',
+                'description.required' => 'La descripción del producto es obligatoria.',
+                'price.required' => 'El precio del producto es obligatorio.',
+                'category.required' => 'La categoría del producto es obligatoria.',
+                'id_supplier.required' => 'El proveedor del producto es obligatorio.',
+                'is_customized.required' => 'Debe indicar si el producto es personalizado.'
+            ]
+        );
 
-        
-         Product::create([
-            'name' => $this->name,
-            'description' => $this->description,
-            'price' => $this->price,
-            'category' => $this->category,
-            'id_supplier' => $this->id_supplier,
-            'is_customized' => $this->is_customized
-        ]);
+        try {
+            Product::create([
+                'name' => $this->name,
+                'description' => $this->description,
+                'price' => $this->price,
+                'category' => $this->category,
+                'id_supplier' => $this->id_supplier,
+                'is_customized' => $this->is_customized
+            ]);
 
 
-        $this->modal = false;
-        session()->flash('message', 'Producto creado correctamente.');
-        $this->dispatch('product-created'); // puedes usarlo para actualizar tablas
+            $this->modal = false;
+            $this->clean();
+            $this->dispatch('update-product'); // para actualizar la tabla de productos
+            Toaster::success("Producto creado con éxito!.");
+
+        } catch (Exception $e) {
+            Toaster::error('Error al crear el producto: ' . $e->getMessage());
+        }
     }
 }

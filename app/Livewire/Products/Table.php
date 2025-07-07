@@ -5,6 +5,7 @@ namespace App\Livewire\Products;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Product;
+use Livewire\Attributes\On;
 
 class Table extends Component
 {
@@ -31,7 +32,13 @@ class Table extends Component
             $this->sortField = $field;
         }
     }
+    #[On('update-product')]
+    public function updateProducts()
+    {
+        $this->resetPage(); // reiniciar a la página 1 al actualizar productos
+    }
 
+    
     public function render()
     {
         $products = Product::with(['supplier'])

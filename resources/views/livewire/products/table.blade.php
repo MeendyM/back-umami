@@ -45,11 +45,11 @@
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->category ?? '-' }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
-                            {!! $product->is_customizable ? '✅' : '❌' !!}
+                            {!! $product->is_customized ? '✅' : '❌' !!}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center text-gray">
                             <div class="flex justify-center text-sm">
-                                <button class="hover:text-blue" wire:click="$emit('editProduct', {{ $product->id }})"
+                                <button class="hover:text-blue" wire:click="$dispatch('editProduct', { id_product :{{ $product->id_product }}} )"
                                     wire:loading.attr="disabled">
                                     <x-icons.edit />
                                 </button>
@@ -92,5 +92,5 @@
             </x-inputs.dropdown>
         </div>
     </div>
-
+    <livewire:products.edit :key="'products.edit'" />
 </div>
