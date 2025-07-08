@@ -6,9 +6,6 @@
         </x-search>
 
         <div class="flex justify-end space-x-2">
-            <x-secondary-button>
-                Crear sets (falta decidir donde ponerlo)
-            </x-secondary-button>
             <livewire:products.create key="products.create" />
         </div>
     </div>
