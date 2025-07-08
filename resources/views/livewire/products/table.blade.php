@@ -50,7 +50,7 @@
                                     wire:loading.attr="disabled">
                                     <x-icons.edit />
                                 </button>
-                                <button wire:click="$emit('deleteProduct', {{ $product->id }})"
+                                <button wire:click="$dispatch('showDeleteProduct', {id_product :{{ $product->id_product }} } )"
                                     class="text-principal-100 font-bold py-2 px-1 hover:text-error-red"
                                     wire:loading.attr="disabled">
                                     <x-icons.trash />
@@ -89,5 +89,6 @@
             </x-inputs.dropdown>
         </div>
     </div>
+    <livewire:products.delete :key="'products.delete'" />
     <livewire:products.edit :key="'products.edit'" />
 </div>
