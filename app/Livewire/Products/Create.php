@@ -23,7 +23,7 @@ class Create extends Component
 
     public function mount()
     {
-        $this->suppliers = Supplier::all(); // asegúrate de tener datos en la tabla
+        $this->suppliers = Supplier::all();
     }
 
     public function render()
@@ -87,7 +87,7 @@ class Create extends Component
 
             $this->modal = false;
             $this->clean();
-            $this->dispatch('update-product'); // para actualizar la tabla de productos
+            $this->dispatch('update-product');
             Toaster::success("Producto creado con éxito!.");
 
         } catch (Exception $e) {

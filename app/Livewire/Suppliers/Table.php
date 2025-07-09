@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Livewire\Products;
+namespace App\Livewire\Suppliers;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Product;
+use App\Models\Supplier;
 use Livewire\Attributes\On;
 
 class Table extends Component
@@ -32,30 +32,26 @@ class Table extends Component
             $this->sortField = $field;
         }
     }
-    
-    #[On('update-product')]
-    public function updateProducts()
+
+    #[On('update-supplier')]
+    public function updateSuppliers()
     {
         $this->resetPage(); // reiniciar a la página 1 al actualizar productos
     }
 
-    
     public function render()
     {
-        $products = Product::with(['supplier'])
-            ->where(function ($query) {
-                $query->where('name', 'like', "%{$this->search}%") 
-                    ->orWhereHas('supplier', function ($q) {
-                        $q->where('name', 'like', "%{$this->search}%");
-                    });
-            })
+        $suppliers = Supplier::query()
+            ->where('name', 'like', "%{$this->search}%")
             ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
             ->paginate($this->perPage);
 
-
-        return view('livewire.products.table', [
-            'products' => $products,
-            'optionsPerPage' => [10, 25, 50],
-        ]);
+        return view(
+            'livewire.suppliers.table',
+            [
+                'suppliers' => $suppliers,
+                'optionsPerPage' => [10, 25, 50],
+            ]
+        );
     }
 }
