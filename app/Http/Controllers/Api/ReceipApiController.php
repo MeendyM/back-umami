@@ -17,8 +17,12 @@ class ReceipApiController extends Controller
             'id_user' => 'required|integer',
             'amount' => 'required|numeric',
             'id_transaction' => 'required|string',
-            'url_img' => 'required|string',
+            'url_img' => 'nullable|string',
         ]);
+
+        if (empty($validatedData['url_img'])) {
+            $validatedData['url_img'] = 'https://example.com/default-image.jpg';
+        }
 
         $order = Order::find($validatedData['id_order']);
 
