@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\OrderItemController;
 
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReceipApiController;
+use App\Http\Controllers\Api\SetApiController;
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -39,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/receips/add', [ReceipApiController::class, 'addReceip']);
     Route::get('/receips/order/{id_order}', [ReceipApiController::class, 'getReceipsByOrderId']);
-
-
 });
-    Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/sets', [SetApiController::class, 'getSets']);
+Route::get('/sets/products/{id_set}', [SetApiController::class, 'getProductsFromSets']);
