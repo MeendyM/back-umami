@@ -6,7 +6,7 @@
         </x-search>
 
         <div class="flex justify-end space-x-2">
-           {{--  <livewire:sets.create key="sets.create" /> --}}
+            <livewire:sets.create key="sets.create" />
         </div>
     </div>
 

@@ -15,6 +15,7 @@ class Table extends Component
     public $perPage = 10;
     public $sortField = 'name';
     public $sortAsc = true;
+    
 
     protected $queryString = ['search']; // para mantener el valor al navegar
 
