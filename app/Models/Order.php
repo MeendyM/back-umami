@@ -18,7 +18,7 @@ class Order extends Model
         'total',
         'payment_type',
         'discount_amount',
-        'final_total',
+        'final_total',//es el campo que se usa para calculos aunque el total sea el mismo
     ];
 
     // Relación: Orden pertenece a un usuario
