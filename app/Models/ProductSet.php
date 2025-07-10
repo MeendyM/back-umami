@@ -13,8 +13,8 @@ class ProductSet extends Model
     protected $primaryKey = 'id_product_set';
 
     protected $fillable = [
-        'set_id',
-        'product_id',
+        'id_set',
+        'id_product',
     ];
 
     public function set()

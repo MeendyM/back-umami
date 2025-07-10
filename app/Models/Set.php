@@ -15,10 +15,11 @@ class Set extends Model
     protected $fillable = [
         'name',
         'description',
+        'url_image',//agregar imagen del set
     ];
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'product_set', 'set_id', 'product_id');
+        return $this->belongsToMany(Product::class, 'product_set', 'id_set', 'id_product', 'id_set', 'id_product');
     }
 }
