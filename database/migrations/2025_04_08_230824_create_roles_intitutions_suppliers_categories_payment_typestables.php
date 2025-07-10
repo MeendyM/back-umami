@@ -44,6 +44,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('discounts');
         Schema::dropIfExists('suppliers');
-        
+        Schema::dropIfExists('institutions');
     }
 };
