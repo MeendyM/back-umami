@@ -8,6 +8,7 @@ enum TypeDiscount: string
     case FROM_1500 = 'from_1500';
     case FROM_2500 = 'from_2500';
     case FROM_400_AGAIN = 'from_4000';
+    case SET = 'set';//Descuento para los sets
 
     public static function labels(): array
     {
@@ -16,6 +17,7 @@ enum TypeDiscount: string
             self::FROM_1500->value => 'Desde $1500',
             self::FROM_2500->value => 'Desde $2500',
             self::FROM_400_AGAIN->value => 'Desde $4000',
+            self::SET->value => 'Set de productos',
         ];
     }
 }
