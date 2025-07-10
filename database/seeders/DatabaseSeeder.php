@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             SupplierSeeder::class,
             UserSeeder::class,
             ProductSeeder::class,
+            ProductSetSeeder::class,
           /*   StatusOrderSeeder::class, */
            /*  OrderSeeder::class,
             OrderItemSeeder::class */

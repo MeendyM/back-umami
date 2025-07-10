@@ -28,7 +28,9 @@ class ProductSeeder extends Seeder
             'price' => 120.00,
             'url_imagen' => 'https://example.com/chef-knife.jpg',
             'id_supplier' => $suppliers->first()->id_supplier, // Asignar primer proveedor
-            'category' => CategoryProduct::KNIVES->value // Asignar categoría de cuchillos
+            'category' => CategoryProduct::KNIVES->value, // Asignar categoría de cuchillos
+            'is_customized' => true // No es personalizado
+
         ]);
 
         Product::create([
@@ -37,7 +39,8 @@ class ProductSeeder extends Seeder
             'price' => 100.00,
             'url_imagen' => 'https://example.com/santoku-knife.jpg',
             'id_supplier' => $suppliers->skip(1)->first()->id_supplier, // Asignar segundo proveedor
-            'category' => CategoryProduct::KNIVES->value // Asignar categoría de cuchillos
+            'category' => CategoryProduct::KNIVES->value, // Asignar categoría de cuchillos
+            'is_customized' => true // No es personalizado
         ]);
 
         Product::create([
