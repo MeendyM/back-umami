@@ -37,6 +37,8 @@
                 {{ $slot }}
             </main>
         </div>
+        
+        <x-toaster-hub />
 
         @stack('modals')
 

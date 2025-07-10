@@ -18,4 +18,5 @@ Route::middleware([
     })->name('dashboard');
 
     Route::get('/products',[WebControllers::class, 'products'])->name('products');
+    Route::get('/collections',[WebControllers::class, 'collections'])->name('collections');
 });

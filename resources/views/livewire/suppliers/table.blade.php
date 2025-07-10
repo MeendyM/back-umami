@@ -6,7 +6,7 @@
         </x-search>
 
         <div class="flex justify-end space-x-2">
-            <livewire:products.create key="products.create" />
+            <livewire:suppliers.create key="suppliers.create" />
         </div>
     </div>
 
@@ -23,38 +23,26 @@
                             <x-sort-icon field="name" :sortField="$sortField" :sortAsc="$sortAsc" />
                         </div>
                     </th>
-                    <th class="px-2 py-2">Descripción</th>
-                    <th class="px-2 py-2">Precio</th>
-                    <th class="px-2 py-2">Proveedor</th>
-                    <th class="px-2 py-2">Categoría</th>
-                    <th class="px-2 py-2 text-center">Personalizable</th>
                     <th class="px-2 py-2 rounded-tr-md text-center"></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($products as $product)
+                @foreach ($suppliers as $supplier)
                     <tr class="text-left text-sm hover:bg-light-blue">
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->name }}</td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->description }}</td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">
-                            ${{ number_format($product->price, 2) }}</td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->supplier->name ?? '-' }}
-                        </td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->category ?? '-' }}</td>
-                        <td class="border-b border-t border-light-blue px-2 py-2 text-center">
-                            {!! $product->is_customized ? '✅' : '❌' !!}
-                        </td>
+                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $supplier->name }}</td>
+
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center text-gray">
                             <div class="flex justify-center text-sm">
-                                <button class="hover:text-blue" wire:click="$dispatch('editProduct', { id_product :{{ $product->id_product }}} )"
+                                <button class="hover:text-blue"
+                                    wire:click="$dispatch('editSupplier', { id_supplier :{{ $supplier->id_supplier }}} )"
                                     wire:loading.attr="disabled">
                                     <x-icons.edit />
                                 </button>
-                                <button wire:click="$dispatch('showDeleteProduct', {id_product :{{ $product->id_product }} } )"
+                                {{-- <button wire:click="$dispatch('showDeleteProduct', {id_product :{{ $product->id_product }} } )"
                                     class="text-principal-100 font-bold py-2 px-1 hover:text-error-red"
                                     wire:loading.attr="disabled">
                                     <x-icons.trash />
-                                </button>
+                                </button> --}}
                             </div>
                         </td>
                     </tr>
@@ -62,7 +50,7 @@
             </tbody>
         </table>
 
-        @if ($products->count() == 0)
+        @if ($suppliers->count() == 0)
             <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6 text-center">
                 No hay registros
             </div>
@@ -71,7 +59,7 @@
 
     {{-- Paginación --}}
     <div class="px-4 py-4 relative min-h-20 mt-3">
-        {{ $products->links() }}
+        {{ $suppliers->links() }}
         <div class="w-[65px] absolute bottom-6 right-72">
             <x-inputs.dropdown class="py-1 px-1 border border-gray text-smm">
                 <x-bgs.flex-center-between class="w-full">
@@ -89,6 +77,6 @@
             </x-inputs.dropdown>
         </div>
     </div>
-    <livewire:products.delete :key="'products.delete'" />
-    <livewire:products.edit :key="'products.edit'" />
+    {{-- <livewire:suppliers.delete :key="'suppliers.delete'" /> --}}
+    <livewire:suppliers.edit :key="'suppliers.edit'" />
 </div>

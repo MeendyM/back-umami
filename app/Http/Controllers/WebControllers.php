@@ -10,4 +10,9 @@ class WebControllers extends Controller
     {
         return view('products.index');
     }
+
+    public function collections()
+    {
+        return view('collections.index');
+    }
 }

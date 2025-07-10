@@ -32,7 +32,7 @@ $btn_text2 = $btn_text2 ?? 'Guardar';
         </div>
 
         <!-- Contenedor con scroll que incluye el contenido y el footer -->
-        <div class="p-4 md:p-5 space-y-4 overflow-y-auto max-h-[70vh]">
+        <div class="p-4 md:p-5 space-y-4 overflow-y-auto max-h-[85vh]">
             <div class="text-left">
                 {{ $slot }}
             </div>
