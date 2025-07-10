@@ -9,22 +9,40 @@ use App\Models\OrderItem;
 
 class OrderController extends Controller
 {
-    public function index()
+    // Obtener todas las órdenes del usuario autenticado
+    public function userOrders(Request $request)
     {
-        $orders = Order::select('id_order', 'id_user', 'id_status_order', 'total', 'final_total', 'created_at')
-            ->with([
-                'user:id_user,name,email',
-                'status:id_status_order,name'
-            ])->get();
+        $userId = $request->user()->id_user;
+
+        $orders = Order::where('id_user', $userId)
+            ->get();
+
+        // Agregar label en español para status
+        foreach ($orders as $order) {
+            $order->status_label = \App\Enums\StatusOrder::labels()[$order->status] ?? $order->status;
+        }
+
         return response()->json($orders, 200);
     }
 
-    public function products($id_order)
+    // Obtener una orden específica por id, solo si pertenece al usuario autenticado
+    public function userOrderById(Request $request, $id_order)
     {
-        $items = OrderItem::with(['product:id_product,name,price,url_imagen'])
-            ->where('id_order', $id_order)
-            ->get();
+        $userId = $request->user()->id_user;
+        $order = Order::where('id_order', $id_order)
+            ->where('id_user', $userId)
+            ->with([
+                'orderItems.product:id_product,name,price,url_imagen'
+            ])
+            ->first();
 
-        return response()->json($items, 200);
+        if (!$order) {
+            return response()->json(['message' => 'Orden no encontrada o no pertenece al usuario'], 404);
+        }
+
+        // Agregar label en español para status
+        $order->status_label = \App\Enums\StatusOrder::labels()[$order->status] ?? $order->status;
+
+        return response()->json($order, 200);
     }
 }
