@@ -413,4 +413,98 @@ class CartController extends Controller
             'quantity' => $orderItem->quantity
         ], 200);
     }
+
+    public function addMultipleItems(Request $request)
+    {
+        $userId = $request->user()->id_user;
+
+        Log::info('Intentando agregar múltiples items al carrito', [
+            'user_id' => $userId,
+            'request' => $request->all()
+        ]);
+
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id_product' => 'required|integer|exists:products,id_product',
+            'items.*.customs' => 'nullable|array',
+            'items.*.customs.*' => 'string',
+            'items.*.quantity' => 'nullable|integer|min:1'
+        ]);
+
+        Log::info('Validación exitosa para agregar múltiples items');
+
+        $addedItems = [];
+
+        foreach ($request->input('items') as $itemData) {
+            Log::info('Procesando item', ['itemData' => $itemData]);
+
+            $product = Product::find($itemData['id_product']);
+            $quantity = $itemData['quantity'] ?? 1; // Default: 1
+            $customizations = $itemData['customs'] ?? [];
+
+            // Buscar si el producto ya está en el carrito del usuario sin orden asignada
+            $existingItem = OrderItem::where('id_user', $userId)
+                ->where('id_product', $product->id_product)
+                ->whereNull('id_order')
+                ->first();
+
+            Log::info('Buscando item existente', ['existingItem' => $existingItem]);
+
+            // Determinar si el producto es personalizado
+            $isCustomized = (bool)($product->is_customized ?? false);
+
+            if ($existingItem) {
+                Log::info('Item existente encontrado, actualizando', ['existingItem' => $existingItem]);
+                // Actualizar item existente
+                $existingItem->quantity += $quantity;
+                $existingItem->subtotal += $product->price * $quantity;
+
+                $new = $customizations;
+                $current = $existingItem->custom_text;
+
+                // Unir los textos personalizados correctamente
+                $resultado = array_merge($current ?? [], $new ?? []);
+
+                $existingItem->custom_text = $resultado;
+                $existingItem->is_customized = $isCustomized;
+
+                $existingItem->save();
+
+                Log::info('Item existente actualizado', ['item' => $existingItem]);
+
+                $addedItems[] = [
+                    'message' => 'Producto actualizado en el carrito',
+                    'item' => $existingItem
+                ];
+
+            } else {
+                Log::info('Item no encontrado, creando nuevo item');
+                // Crear nuevo item en carrito
+                $newItem = OrderItem::create([
+                    'id_user' => $userId,
+                    'id_product' => $product->id_product,
+                    'quantity' => $quantity,
+                    'subtotal' => $product->price * $quantity,
+                    'custom_text' => $customizations,
+                    'is_customized' => $isCustomized,
+                ]);
+
+                Cart::create([
+                    'id_user' => $userId,
+                    'id_order_item' => $newItem->id_order_item,
+                ]);
+
+                Log::info('Nuevo item creado', ['newItem' => $newItem]);
+
+                $addedItems[] = [
+                    'message' => 'Producto agregado al carrito',
+                    'item' => $newItem
+                ];
+            }
+        }
+
+        Log::info('Proceso de agregar múltiples items completado', ['addedItemsCount' => count($addedItems)]);
+
+        return response()->json(['results' => $addedItems], 200);
+    }
 }

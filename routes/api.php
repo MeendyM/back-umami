@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/edit', [CartController::class, 'edit']);
     Route::post('/cart/editCustomTexts', [CartController::class, 'editCustomTexts']);
     Route::post('/cart/createOrder', [CartController::class, 'createOrder']);
+    Route::post('/cart/addMultiple', [CartController::class, 'addMultipleItems']);
 
     //Ordenes
     Route::get('/orders', [OrderController::class, 'index']);
