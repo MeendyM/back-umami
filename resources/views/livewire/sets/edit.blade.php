@@ -1,13 +1,6 @@
 <div>
-    <div class="flex w-full justify-end">
-        <x-primary-button wire:click="openModal()">
-            <x-icons.create class="fill-white mr-2 w-4" />
-            <span>Agregar set</span>
-        </x-primary-button>
-    </div>
-
-    <x-modal-header wire:model="modal" title="Agregar set">
-        <form wire:submit.prevent="save">
+    <x-modal-header wire:model="modalEdit" title="Editar set">
+        <form wire:submit.prevent="submit">
             <div class="space-y-4">
 
                 {{-- Nombre --}}
@@ -52,10 +45,11 @@
                             @forelse($products as $product)
                                 <li wire:click="selectProduct({{ $product->id_product }})"
                                     class="px-4 py-3 hover:bg-light-blue cursor-pointer text-sm">
-                                    <div class="font-semibold text-black2">{{ $product->name }}<span
-                                            class="font-normal"> - ${{ number_format($product->price, 2) }} -
-                                            {{ $product->category }} - {{ $product->supplier->name }}</span></div>
-
+                                    <div class="font-semibold text-black2">
+                                        {{ $product->name }}<span class="font-normal">
+                                            - ${{ number_format($product->price, 2) }} -
+                                            {{ $product->category }} - {{ $product->supplier->name }}</span>
+                                    </div>
                                 </li>
                             @empty
                                 <li class="px-4 py-3 text-sm text-gray-500">No se encontraron productos.</li>
@@ -67,17 +61,16 @@
                 {{-- Productos seleccionados --}}
                 @if (count($selected))
                     <div class="mt-4">
-                        <x-texts.text-small class="font-bold mb-1">Estos productos estaran en tu
-                            set</x-texts.text-small>
-                        <ul class="space-y-2">
+                        <x-texts.text-small class="font-bold mb-1">Estos productos estan en tu set</x-texts.text-small>
+                        <ul>
                             @foreach ($selected as $id)
                                 @php
                                     $product = \App\Models\Product::find($id);
                                 @endphp
                                 @if ($product)
-                                    <li
-                                        class="p-2 bg-gray-100 rounded flex justify-between items-center hover:bg-light-blue">
-                                        <span>{{ $product->name }} - {{$product->price }} - {{$product->category}} - {{$product->supplier->name}}</span>
+                                    <li class="p-1 rounded flex justify-between items-center hover:bg-light-blue border-b border-light-blue">
+                                        <span>{{ $product->name }} - ${{ $product->price }} - {{ $product->category }} -
+                                            {{ $product->supplier->name }}</span>
                                         <button wire:click.prevent="removeProduct({{ $product->id_product }})"
                                             class="text-principal-100 font-bold py-2 px-1 hover:text-error-red"
                                             wire:loading.attr="disabled">
@@ -94,10 +87,14 @@
 
             {{-- Footer --}}
             <x-slot name="footer" class="space-x-1 space-y-3 flex flex-col">
-                <x-primary-button wire:loading.attr="disabled" type="submit">
-                    <x-btns.loading wire:loading />
-                    Crear set
+                <x-primary-button wire:click="update" wire:loading.attr="disabled" wire:target="update">
+                    <x-btns.loading wire:loading wire:target="update" />
+                    Actualizar set
                 </x-primary-button>
+                <x-secondary-button type="button" wire:click="closeModal" wire:loading.attr="disabled"
+                    wire:target="closeModal">
+                    Cancelar
+                </x-secondary-button>
             </x-slot>
         </form>
     </x-modal-header>

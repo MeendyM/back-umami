@@ -15,4 +15,9 @@ class WebControllers extends Controller
     {
         return view('collections.index');
     }
+
+    public function discounts()
+    {
+        return view('discounts.index');
+    }
 }

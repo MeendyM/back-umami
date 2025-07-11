@@ -2,6 +2,7 @@
     <x-modal-header wire:model="modalEdit" title="Editar producto">
         <form wire:submit.prevent="submit">
             <div class="space-y-4">
+                
                 {{-- Nombre --}}
                 <div>
                     <x-input-form input="name" placeholder="Nombre del producto">
