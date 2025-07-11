@@ -32,14 +32,15 @@
                     <tr class="text-left text-sm hover:bg-light-blue">
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $set->name }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $set->description }}</td>
-            
+
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center text-gray">
                             <div class="flex justify-center text-sm">
-                                {{-- <button class="hover:text-blue" wire:click="$dispatch('editProduct', { id_product :{{ $product->id_product }}} )"
+                                <button class="hover:text-blue"
+                                    wire:click="$dispatch('editSet', { id_set :{{ $set->id_set }}} )"
                                     wire:loading.attr="disabled">
                                     <x-icons.edit />
                                 </button>
-                                <button wire:click="$dispatch('showDeleteProduct', {id_product :{{ $product->id_product }} } )"
+                                {{--     <button wire:click="$dispatch('showDeleteProduct', {id_product :{{ $product->id_product }} } )"
                                     class="text-principal-100 font-bold py-2 px-1 hover:text-error-red"
                                     wire:loading.attr="disabled">
                                     <x-icons.trash />
@@ -78,6 +79,6 @@
             </x-inputs.dropdown>
         </div>
     </div>
-    {{-- <livewire:sets.delete :key="'sets.delete'" />
-    <livewire:sets.edit :key="'sets.edit'" /> --}}
+    {{-- <livewire:sets.delete :key="'sets.delete'" />--}}
+    <livewire:sets.edit :key="'sets.edit'" /> 
 </div>
