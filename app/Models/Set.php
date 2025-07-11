@@ -20,6 +20,6 @@ class Set extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'product_set', 'id_set', 'id_product', 'id_set', 'id_product');
+        return $this->belongsToMany(Product::class, 'product_set', 'id_set', 'id_product');
     }
 }

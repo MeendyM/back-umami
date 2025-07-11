@@ -15,7 +15,7 @@ class ReceipApiController extends Controller
         $validatedData = $request->validate([
             'id_order' => 'required|integer',
             'id_user' => 'required|integer',
-            'amount' => 'required|numeric',
+            'amount' => 'required|numeric|min:0',
             'id_transaction' => 'required|string',
             'url_img' => 'nullable|string',
         ]);
@@ -28,6 +28,17 @@ class ReceipApiController extends Controller
 
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        // Calculate current total paid for the order
+        $currentTotalPaid = $order->receips()->sum('amount');
+
+        // Calculate the total paid after adding the new receipt
+        $newTotalPaid = $currentTotalPaid + $validatedData['amount'];
+
+        // Check if the new total paid exceeds the order's final_total
+        if ($newTotalPaid > $order->final_total) {
+            return response()->json(['message' => 'The total amount of receipts exceeds the order total.'], 400);
         }
 
         if ($order->status !== StatusOrder::PAYING->value) {
