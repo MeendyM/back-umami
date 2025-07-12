@@ -40,7 +40,7 @@
                             ${{ number_format($product->price, 2) }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->supplier->name ?? '-' }}
                         </td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->category ?? '-' }}</td>
+                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $product->category->name ?? '-' }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
                             {!! $product->is_customized ? '✅' : '❌' !!}
                         </td>

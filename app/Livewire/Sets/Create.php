@@ -21,9 +21,11 @@ class Create extends Component
         $products = [];
 
         if (strlen($this->search) >= 1) {
-            $products = Product::with('supplier')
+            $products = Product::with('supplier', 'category')
                 ->where('name', 'like', "%{$this->search}%")
-                ->orWhere('category', 'like', "%{$this->search}%")
+                ->orWhereHas('category', function ($query) {
+                    $query->where('name', 'like', "%{$this->search}%");
+                })
                 ->limit(5)
                 ->get();
         }

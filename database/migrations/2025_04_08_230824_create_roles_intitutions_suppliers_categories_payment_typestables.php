@@ -21,11 +21,12 @@ return new class extends Migration
 
         Schema::create('discounts', function (Blueprint $table) {
             $table->id('id_discount');
-            $table->string('code');
-            $table->string('type');
-            $table->string('value');
-            $table->string('max_uses');
-            $table->date('expires_at');
+            $table->string('code')->unique(); // Para evitar cupones duplicados
+            $table->string('type')->nullable(); // se conectara al enum de TypeDiscount
+            $table->decimal('value', 5, 2); // Ej: 15.00 (% o monto fijo)
+            $table->string('minimum_purchase')->nullable(); // minimo de compra dejar coomo nulo
+            $table->unsignedInteger('max_uses')->nullable(); // NULL = ilimitado
+            $table->dateTime('expires_at')->nullable(); // NULL = sin expiración
             $table->timestamps();
         });
 
@@ -35,6 +36,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id('id_category');
+            $table->string('name')->unique();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -45,5 +51,6 @@ return new class extends Migration
         Schema::dropIfExists('discounts');
         Schema::dropIfExists('suppliers');
         Schema::dropIfExists('institutions');
+        Schema::dropIfExists('categories');
     }
 };

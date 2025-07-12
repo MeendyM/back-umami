@@ -29,11 +29,14 @@
                 </div>
 
                 {{-- Categoria --}}
-                <div>
-                    <x-input-form input="category" placeholder="Categoria del producto">
-                        <x-texts.text-small>Categoria</x-texts.text-small>
-                    </x-input-form>
-                    @error('category')
+                <div class="category">
+                    <x-input-dropdown input="id_category" title="Categoría" placeholder="Selecciona una categoría">
+                        @foreach ($categories as $category)
+                            <x-input-dropdown-option value="{{ $category->id_category }}">{{ $category->name }}
+                            </x-input-dropdown-option>
+                        @endforeach
+                    </x-input-dropdown>
+                    @error('id_category')
                         <x-texts.text-error>{{ $message }}</x-texts.text-error>
                     @enderror
                 </div>
@@ -62,7 +65,7 @@
                     @enderror
                 </div>
 
-                {{-- Categoría (texto plano) --}}
+                {{-- checbox--}}
                 <div>
                     <x-checkbox-toggle title="Producto personalizable" :input="$is_customized" wire-model="is_customized" />
 

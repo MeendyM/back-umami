@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id('id_set');
             $table->string('name')->unique(); // Evitar nombres duplicados
             $table->text('description')->nullable();
+            $table->string('url_image')->nullable(); // Imagen del set
+            $table->foreignId('id_discount')->nullable()->constrained('discounts', 'id_discount')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -24,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('sets', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('id_discount');
+        });
+
         Schema::dropIfExists('sets');
     }
 };
