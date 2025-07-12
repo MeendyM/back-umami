@@ -43,7 +43,7 @@ class Table extends Component
     
     public function render()
     {
-        $products = Product::with(['supplier'])
+        $products = Product::with(['supplier', 'category'])
             ->where(function ($query) {
                 $query->where('name', 'like', "%{$this->search}%") 
                     ->orWhereHas('supplier', function ($q) {

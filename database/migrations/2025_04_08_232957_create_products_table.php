@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('description');
             $table->decimal('price', 10, 2);
-            $table->string('url_imagen');
+            $table->string('url_imagen')->nullable();
             $table->foreignId('id_supplier')->nullable()->constrained('suppliers', 'id_supplier')->nullOnDelete();
-            $table->string('category');
+            $table->foreignId('id_category')->nullable()->constrained('categories', 'id_category')->nullOnDelete();
             $table->boolean('is_customized')->default(false);
             $table->timestamps();
         });
@@ -32,6 +32,7 @@ return new class extends Migration
     {   
         Schema::table('products', function (Blueprint $table) {
             $table->dropConstrainedForeignId('id_supplier');
+            $table->dropConstrainedForeignId('id_category');
         });
         Schema::dropIfExists('products');
     }

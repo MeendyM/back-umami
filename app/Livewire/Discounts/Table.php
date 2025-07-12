@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Discounts;
 
+use App\Models\Discount;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
@@ -12,10 +13,10 @@ class Table extends Component
 
     public $search = '';
     public $perPage = 10;
-    public $sortField = 'name';
+    public $sortField = 'code';
     public $sortAsc = true;
 
-    protected $queryString = ['search']; // para mantener el valor al navegar
+    protected $queryString = ['code']; // para mantener el valor al navegar
 
     public function updatingSearch()
     {
@@ -40,6 +41,14 @@ class Table extends Component
 
     public function render()
     {
-        return view('livewire.discounts.table');
+        //consultar todos los registros de descuentos
+        $discounts = Discount::where('code', 'like', "%{$this->search}%")
+            ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
+            ->paginate($this->perPage);
+
+        return view('livewire.discounts.table', [
+            'discounts' => $discounts,
+            'optionsPerPage' => [10, 25, 50],
+        ]);
     }
 }

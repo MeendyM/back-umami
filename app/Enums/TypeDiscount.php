@@ -9,7 +9,6 @@ enum TypeDiscount: string
     case FROM_2500 = 'from_2500';
     case FROM_400_AGAIN = 'from_4000';
     case SET = 'set';//Descuento para los sets
-    case PRODUCT = 'product'; // Descuento para productos individuales
 
     public static function labels(): array
     {

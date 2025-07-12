@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TypeDiscount;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -16,6 +17,7 @@ class Discount extends Model
         'type',
         'value',
         'max_uses',
+        'minimum_purchase',
         'expires_at',
     ];
 
@@ -25,5 +27,10 @@ class Discount extends Model
     public function orders()
     {
         return $this->hasMany(Order::class, 'id_discount', 'id_discount');
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return TypeDiscount::labels()[$this->minimum_purchase] ?? '—';
     }
 }

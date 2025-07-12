@@ -54,7 +54,7 @@
                                     class="px-4 py-3 hover:bg-light-blue cursor-pointer text-sm">
                                     <div class="font-semibold text-black2">{{ $product->name }}<span
                                             class="font-normal"> - ${{ number_format($product->price, 2) }} -
-                                            {{ $product->category }} - {{ $product->supplier->name }}</span></div>
+                                            {{ $product->category->name }} - {{ $product->supplier->name }}</span></div>
 
                                 </li>
                             @empty
@@ -77,7 +77,7 @@
                                 @if ($product)
                                     <li
                                         class="p-2 bg-gray-100 rounded flex justify-between items-center hover:bg-light-blue">
-                                        <span>{{ $product->name }} - {{$product->price }} - {{$product->category}} - {{$product->supplier->name}}</span>
+                                        <span>{{ $product->name }} - {{$product->price }} - {{$product->category->name}} - {{$product->supplier->name}}</span>
                                         <button wire:click.prevent="removeProduct({{ $product->id_product }})"
                                             class="text-principal-100 font-bold py-2 px-1 hover:text-error-red"
                                             wire:loading.attr="disabled">

@@ -22,9 +22,11 @@ class Edit extends Component
         $products = [];
 
         if (strlen($this->search) >= 1) {
-            $products = Product::with('supplier')
+            $products = Product::with('supplier', 'category')
                 ->where('name', 'like', "%{$this->search}%")
-                ->orWhere('category', 'like', "%{$this->search}%")
+                ->orWhereHas('category', function ($query) {
+                    $query->where('name', 'like', "%{$this->search}%");
+                })
                 ->limit(5)
                 ->get();
         }
@@ -81,7 +83,7 @@ class Edit extends Component
             'description' => 'nullable|string|max:1000',
         ]);
 
-        if($this->selected == []) {
+        if ($this->selected == []) {
             Toaster::error('Selecciona al menos un producto para el set.');
             return;
         }
@@ -89,7 +91,7 @@ class Edit extends Component
         try {
             $this->set->name = $this->name;
             $this->set->description = $this->description;
-            
+
 
             // Actualizar los productos del set
             $this->set->products()->sync($this->selected);
@@ -98,7 +100,6 @@ class Edit extends Component
 
             $this->closeModal();
             Toaster::success('Set actualizado correctamente.');
-
         } catch (\Exception $e) {
             Log::error('Error al actualizar el set: ' . $e->getMessage());
             Toaster::error('Error al actualizar el set. Por favor, inténtalo de nuevo.');

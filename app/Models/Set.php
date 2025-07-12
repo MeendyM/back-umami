@@ -15,7 +15,8 @@ class Set extends Model
     protected $fillable = [
         'name',
         'description',
-        'url_image',//agregar imagen del set
+        'url_image',
+        'id_discount'
     ];
 
     public function products()
