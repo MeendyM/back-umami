@@ -1,5 +1,4 @@
 <div>
-
     <div class="flex justify-between my-3">
         <x-search class="focus:border-indigo-400 focus:ring-indigo-400">
             Buscar...
@@ -50,7 +49,7 @@
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center text-gray">
                             <div class="flex justify-center text-sm">
                                 <button class="hover:text-blue"
-                                    wire:click="$dispatch('editdiscount', { id_discount :{{ $discount->id_discount }}} )"
+                                    wire:click="$dispatch('editDiscount', { id_discount :{{ $discount->id_discount }}} )"
                                     wire:loading.attr="disabled">
                                     <x-icons.edit />
                                 </button>
@@ -94,5 +93,5 @@
         </div>
     </div>
     {{-- <livewire:discounts.delete :key="'discounts.delete'" /> --}}
-    {{-- <livewire:discounts.edit :key="'discounts.edit'" /> --}}
+    <livewire:discounts.edit :key="'discounts.edit'" />
 </div>

@@ -19,12 +19,10 @@ class Create extends Component
 
     public function render()
     {
-        $options = collect(TypeDiscount::cases())->mapWithKeys(function ($case) {
-            return [$case->value => TypeDiscount::labels()[$case->value]];
-        });
+        $minimum_purchase_options = TypeDiscount::labels();
 
         return view('livewire.discounts.create', [
-            'options' => $options,
+            'minimum_purchase_options' => $minimum_purchase_options,
         ]);
     }
 
