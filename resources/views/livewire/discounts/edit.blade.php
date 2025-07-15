@@ -1,18 +1,11 @@
 <div>
-    <div class="flex w-full justify-end">
-        <x-primary-button wire:click="openModal()">
-            <x-icons.create class="fill-white mr-2 w-4" />
-            <span>Agregar descuento</span>
-        </x-primary-button>
-    </div>
-
-    <x-modal-header wire:model="modal" title="Agregar descuento">
+    <x-modal-header wire:model="modalEdit" title="Editar descuento">
         <form wire:submit.prevent="submit">
             <div class="space-y-4">
                 {{-- Nombre --}}
                 <div>
                     <div class="flex justify-between items-end">
-                        <x-input-form input="code" class=" uppercase" placeholder="Código del descuento">
+                        <x-input-form input="code" placeholder="Código del descuento">
                             <x-texts.text-small>Código</x-texts.text-small>
                         </x-input-form>
 
@@ -48,7 +41,8 @@
                 </div>
 
                 <div>
-                    <x-input-dropdown input="minimum_purchase" title="Mínimo de compra" placeholder="Selecciona un mínimo">
+                    <x-input-dropdown input="minimum_purchase" title="Mínimo de compra"
+                        placeholder="Selecciona un mínimo">
                         @foreach ($minimum_purchase_options as $value => $label)
                             <x-input-dropdown-option value="{{ $value }}">{{ $label }}
                             </x-input-dropdown-option>
@@ -80,11 +74,14 @@
 
             {{-- Footer --}}
             <x-slot name="footer" class="space-x-1 space-y-3 flex flex-col">
-                <x-primary-button wire:loading.attr="disabled" wire:target="save" wire:click="save">
-                    <x-btns.loading wire:loading wire:target="save" />
-                    Crear descuento
+                <x-primary-button wire:loading.attr="disabled" wire:target="update" wire:click="update">
+                    <x-btns.loading wire:loading wire:target="update" />
+                    Actualizar descuento
                 </x-primary-button>
-
+                <x-secondary-button type="button" wire:click="closeModal" wire:loading.attr="disabled"
+                    wire:target="closeModal">
+                    Cancelar
+                </x-secondary-button>
             </x-slot>
         </form>
     </x-modal-header>
