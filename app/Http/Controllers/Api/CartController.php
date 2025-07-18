@@ -337,6 +337,7 @@ class CartController extends Controller
             'id_user' => $userId,
             'status' => StatusOrder::REQUESTED->value, // Estado inicial
             'total' => $total,
+            'final_total' => $total,
         ]);
 
         // 4. Actualizar los order_items con el id de la nueva orden
