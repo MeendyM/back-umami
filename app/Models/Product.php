@@ -26,4 +26,13 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class, 'id_category');
     }
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'id_product');
+    }
+
+    protected $casts = [
+        'url_imagen' => 'array',
+    ];
 }
