@@ -20,4 +20,9 @@ class WebControllers extends Controller
     {
         return view('discounts.index');
     }
+
+    public function orders()
+    {
+        return view('orders.index');
+    }
 }
