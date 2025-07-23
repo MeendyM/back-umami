@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('description');
             $table->decimal('price', 10, 2);
-            $table->string('url_imagen')->nullable();
             $table->foreignId('id_supplier')->nullable()->constrained('suppliers', 'id_supplier')->nullOnDelete();
             $table->foreignId('id_category')->nullable()->constrained('categories', 'id_category')->nullOnDelete();
             $table->boolean('is_customized')->default(false);
