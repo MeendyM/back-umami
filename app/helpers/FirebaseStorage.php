@@ -48,4 +48,33 @@ class FirebaseStorage
             throw new \Exception("Error al subir archivo a Firebase: HTTP $httpCode - $response - $error");
         }
     }
+
+    function deleteFile($filePath)
+    {
+        $bucket = env('BUCKET');
+        
+        // Construir URL de Firebase Storage para eliminar
+        $url = "https://firebasestorage.googleapis.com/v0/b/{$bucket}/o/" . urlencode($filePath);
+
+        // Iniciar cURL
+        $ch = curl_init($url);
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => 'DELETE',
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return true; // Eliminación exitosa
+        } else {
+            Log::warning("Error al eliminar archivo de Firebase: HTTP $httpCode - $response - $error");
+            throw new \Exception("Error al eliminar archivo de Firebase: HTTP $httpCode - $response - $error");
+        }
+    }
 }

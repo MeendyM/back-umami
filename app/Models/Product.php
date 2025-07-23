@@ -29,7 +29,7 @@ class Product extends Model
 
     public function images()
     {
-        return $this->hasMany(ProductImage::class, 'id_product');
+        return $this->hasMany(ProductImage::class, 'product_id', 'id_product');
     }
 
     protected $casts = [

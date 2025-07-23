@@ -12,6 +12,7 @@ use Masmerise\Toaster\Toaster;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\FirebaseStorage;
 use App\Models\ProductImage;
+use Illuminate\Support\Facades\DB;
 
 class Create extends Component
 {
@@ -99,7 +100,6 @@ class Create extends Component
 
     public function save()
     {
-
         $this->validate(
             [
                 'name' => 'required|string',
@@ -122,39 +122,41 @@ class Create extends Component
             ]
         );
 
+        $uploadedFiles = []; // Para rastrear archivos subidos para posible rollback
+        $firebaseStorage = new FirebaseStorage();
+        
         try {
+            // PASO 1: Subir todas las imágenes a Firebase PRIMERO
             $urls = [];
-            $firebaseStorage = new FirebaseStorage();
 
             foreach ($this->images as $index => $image) {
                 $filename = uniqid() . '.' . $image->getClientOriginalExtension();
                 $realPath = $image->getRealPath();
 
-                try {
-                    $res = $firebaseStorage->uploadFile($realPath, $filename);
+                // Subir imagen a Firebase
+                $res = $firebaseStorage->uploadFile($realPath, $filename);
 
-                    $path   = $res['name'];
-                    $bucket = $res['bucket'];
-                    $token  = $res['downloadTokens'];
+                $path   = $res['name'];
+                $bucket = $res['bucket'];
+                $token  = $res['downloadTokens'];
 
-                    $downloadUrl = sprintf(
-                        'https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media&token=%s',
-                        $bucket,
-                        urlencode($path),
-                        $token
-                    );
+                $downloadUrl = sprintf(
+                    'https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media&token=%s',
+                    $bucket,
+                    urlencode($path),
+                    $token
+                );
 
-                    // Aquí asignamos la URL con índice numérico
-                    $urls[$index] = $downloadUrl;
-                } catch (\Exception $e) {
-                    Log::error("Error subiendo imagen: " . $e->getMessage());
-                    Toaster::error('Error al subir una imagen');
-                    return;
-                }
+                $urls[$index] = $downloadUrl;
+                $uploadedFiles[] = $path; // Guardar referencia para posible eliminación
             }
 
-            Log::info($urls);
+            Log::info('Todas las imágenes subidas exitosamente a Firebase', $urls);
 
+            // PASO 2: Iniciar transacción de base de datos y crear producto
+            DB::beginTransaction();
+
+            // Crear el producto en base de datos
             $details = Product::create([
                 'name' => $this->name,
                 'description' => $this->description,
@@ -164,6 +166,7 @@ class Create extends Component
                 'is_customized' => $this->is_customized,
             ]);
 
+            // PASO 3: Crear las imágenes del producto en base de datos
             foreach ($urls as $url) {
                 ProductImage::create([
                     'product_id' => $details->id_product,
@@ -171,15 +174,36 @@ class Create extends Component
                 ]);
             }
 
+            // Si llegamos aquí, todo salió bien - confirmar transacción
+            DB::commit();
+
             $this->modal = false;
             $this->clean();
             $this->dispatch('update-product');
             Toaster::success("Producto creado con éxito!.");
-        } catch (Exception $e) {
 
-            Toaster::error('Error al crear el producto');
-            // Log the error or handle it as needed
-            Log::error('Error creating product: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            // Rollback de la transacción de base de datos si está activa
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            
+            // Intentar eliminar archivos subidos a Firebase si algo falló
+            if (!empty($uploadedFiles)) {
+                Log::info('Iniciando limpieza de archivos subidos a Firebase...');
+                foreach ($uploadedFiles as $filePath) {
+                    try {
+                        $firebaseStorage->deleteFile($filePath);
+                        Log::info("Archivo eliminado de Firebase: {$filePath}");
+                    } catch (\Exception $deleteException) {
+                        Log::error("Error al eliminar archivo de Firebase durante rollback: {$filePath} - " . $deleteException->getMessage());
+                        // Continuar con la eliminación de otros archivos
+                    }
+                }
+            }
+
+            Log::error('Error en el proceso completo de creación de producto: ' . $e->getMessage());
+            Toaster::error('Error al crear el producto. Todas las operaciones han sido canceladas.');
         }
     }
 }
