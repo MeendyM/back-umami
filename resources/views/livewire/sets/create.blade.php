@@ -30,6 +30,69 @@
                     @enderror
                 </div>
 
+                {{-- Sección de imágenes del set --}}
+                <div>
+                    <x-texts.text-small class="text-tx-black font-bold">Imágenes del set</x-texts.text-small>
+                    
+                    @error('setImage')
+                        <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                    @enderror
+
+                    {{-- Input para imagen del set --}}
+                    <input type="file" 
+                           accept="image/*" 
+                           id="upload-input-sets"
+                           class="hidden" 
+                           wire:model="setImage" />
+
+                    {{-- Imagen del set subida --}}
+                    <div class="flex justify-center flex-wrap gap-2 mt-4">
+                        @if (!is_null($setImagePreviewUrl))
+                            <div class="relative animate-slide-up">
+                                <img src="{{ $setImagePreviewUrl }}"
+                                    class="w-24 h-24 border border-green-300 rounded-lg object-cover transition-all duration-300 hover:shadow-lg" 
+                                    alt="Imagen del set" />
+                                <button type="button" wire:click="removeSetImage()"
+                                    class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-700 transition-colors duration-200">
+                                    &times;
+                                </button>
+                                {{-- Indicador de imagen del set --}}
+                                <div class="absolute bottom-0 left-0 bg-green-500 text-white text-xs px-1 rounded-tr animate-pulse">
+                                    Set
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Botón para agregar imagen del set --}}
+                        @if (is_null($setImagePreviewUrl))
+                            <div class="w-24 h-24 border border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors duration-200"
+                                onclick="document.getElementById('upload-input-sets').click();"
+                                wire:loading.class="opacity-50 cursor-not-allowed"
+                                wire:target="setImage">
+                                
+                                {{-- Spinner cuando se está subiendo archivo --}}
+                                <div wire:loading wire:target="setImage">
+                                    <svg class="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                
+                                {{-- Botón normal cuando no se está cargando --}}
+                                <div wire:loading.remove wire:target="setImage">
+                                    <span class="text-2xl text-gray-500 font-bold">+</span>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    @if(!is_null($setImagePreviewUrl))
+                        <x-texts.text-small class="text-gray-500 text-center mt-2">
+                            Imagen del set agregada
+                        </x-texts.text-small>
+                    @endif
+                </div>
+
 
                 <div x-data="{ open: false }" class="relative">
 
@@ -94,7 +157,7 @@
 
             {{-- Footer --}}
             <x-slot name="footer" class="space-x-1 space-y-3 flex flex-col">
-                <x-primary-button wire:loading.attr="disabled" type="submit">
+                <x-primary-button wire:loading.attr="disabled" wire:click="save">
                     <x-btns.loading wire:loading />
                     Crear set
                 </x-primary-button>
@@ -102,3 +165,43 @@
         </form>
     </x-modal-header>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('upload-input-sets');
+        if (!input) return;
+
+        // Manejo de subida de archivos con validación
+        input.addEventListener('change', function(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+
+            const file = files[0]; // Solo tomamos el primer archivo
+            
+            // Validar tipo
+            if (!file.type.startsWith('image/')) {
+                alert(`${file.name} no es una imagen válida.`);
+                event.target.value = '';
+                return;
+            }
+            
+            // Validar tamaño (2MB máximo)
+            const maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert(`${file.name} es muy grande. Máximo 2MB.`);
+                event.target.value = '';
+                return;
+            }
+
+            // Limpiar el input después de procesar
+            setTimeout(() => {
+                event.target.value = '';
+            }, 100);
+        });
+
+        // Opcional: Escuchar eventos personalizados para feedback adicional
+        window.addEventListener('set-image-uploaded', (event) => {
+            console.log('Imagen de set subida:', event.detail);
+        });
+    });
+</script>
