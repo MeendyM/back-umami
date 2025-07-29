@@ -27,12 +27,19 @@ class Edit extends Component
     // Para las imágenes existentes
     public $existingImages = [];
     
-    // Para las nuevas imágenes
-    public $newImages = [];
+    // Para las nuevas imágenes (una a la vez)
+    public $newImages;
     public $newImagePreviewUrl = [];
+    
+    // Array para acumular todas las nuevas imágenes
+    public $allNewImages = [];
     
     // Para controlar qué imágenes eliminar
     public $imagesToDelete = [];
+    
+    // Para estados de carga y animaciones
+    public $isLoadingImages = false;
+    public $imagesLoaded = false;
 
     public function mount()
     {
@@ -44,6 +51,23 @@ class Edit extends Component
     public function closeModal()
     {
         $this->modalEdit = false;
+        
+        // Limpiar estados de carga y animaciones
+        $this->isLoadingImages = false;
+        $this->imagesLoaded = false;
+        
+        // Limpiar arrays de imágenes - usar reset() para arrays indexados
+        $this->reset([
+            'existingImages',
+            'newImages', 
+            'newImagePreviewUrl',
+            'imagesToDelete',
+            'allNewImages'
+        ]);
+        
+        // Limpiar errores
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
     public function render()
@@ -54,6 +78,9 @@ class Edit extends Component
     #[On('editProduct')]
     public function editProduct($id_product)
     {
+        $this->isLoadingImages = true;
+        $this->imagesLoaded = false;
+        
         $this->product = Product::with(['images', 'category'])->find($id_product);
         if ($this->product) {
             $this->modalEdit = true;
@@ -64,35 +91,95 @@ class Edit extends Component
             $this->id_supplier = $this->product->id_supplier;
             $this->is_customized = $this->product->is_customized;
             
-            // Cargar las imágenes existentes
-            $this->existingImages = $this->product->images->map(function ($image) {
-                return [
-                    'id' => $image->id_product_image,
-                    'url' => $image->url,
-                ];
-            })->toArray();
+            // Limpiar arrays de imágenes antes de cargar nuevos datos
+            $this->reset([
+                'existingImages',
+                'newImages', 
+                'newImagePreviewUrl',
+                'imagesToDelete',
+                'allNewImages'
+            ]);
             
-            // Limpiar arrays de nuevas imágenes
-            $this->newImages = [];
-            $this->newImagePreviewUrl = [];
-            $this->imagesToDelete = [];
+            // Usar dispatch para cargar imágenes después de renderizar el modal
+            $this->dispatch('loadImages');
         }
     }
 
-    // Método para manejar nuevas imágenes subidas
+    #[On('imagesReady')]
+    public function loadExistingImagesWithDelay()
+    {
+        // Cargar las imágenes existentes con un pequeño delay para animación
+        $this->existingImages = $this->product->images->map(function ($image) {
+            return [
+                'id' => $image->id_product_image,
+                'url' => $image->url,
+            ];
+        })->toArray();
+        
+        $this->isLoadingImages = false;
+        $this->imagesLoaded = true;
+    }
+
+    // Método para manejar nueva imagen subida (una a la vez)
     public function updatedNewImages()
     {
-        $this->newImagePreviewUrl = [];
-        foreach ($this->newImages as $image) {
-            $this->newImagePreviewUrl[] = $image->temporaryUrl();
+        if (!$this->newImages) {
+            return;
+        }
+        
+        Log::info('Nueva imagen seleccionada', [
+            'total_acumuladas' => count($this->allNewImages),
+            'previews_actuales' => count($this->newImagePreviewUrl)
+        ]);
+        
+        try {
+            // Agregar la nueva imagen al array acumulado
+            $this->allNewImages[] = $this->newImages;
+            
+            // Agregar el preview URL
+            $this->newImagePreviewUrl[] = $this->newImages->temporaryUrl();
+            
+            Log::info('Imagen agregada exitosamente', [
+                'total_acumuladas' => count($this->allNewImages),
+                'total_previews' => count($this->newImagePreviewUrl)
+            ]);
+            
+            // Limpiar el input para permitir seleccionar otra imagen
+            $this->newImages = null;
+            
+            // Dispatch para notificar
+            $this->dispatch('imageUploaded');
+            
+        } catch (\Exception $e) {
+            Log::error("Error procesando nueva imagen: " . $e->getMessage());
+            $this->addError('newImages', 'Error al procesar la imagen seleccionada.');
         }
     }
 
     // Método para eliminar una imagen nueva (antes de guardar)
     public function removeNewImage($index)
     {
-        unset($this->newImages[$index]);
-        unset($this->newImagePreviewUrl[$index]);
+        Log::info("Eliminando imagen en índice {$index}", [
+            'antes_count_images' => count($this->allNewImages),
+            'antes_count_previews' => count($this->newImagePreviewUrl)
+        ]);
+        
+        // Eliminar de ambos arrays
+        if (isset($this->allNewImages[$index])) {
+            unset($this->allNewImages[$index]);
+        }
+        if (isset($this->newImagePreviewUrl[$index])) {
+            unset($this->newImagePreviewUrl[$index]);
+        }
+        
+        // Reindexar los arrays para evitar huecos en los índices
+        $this->allNewImages = array_values($this->allNewImages);
+        $this->newImagePreviewUrl = array_values($this->newImagePreviewUrl);
+        
+        Log::info("Imagen eliminada", [
+            'despues_count_images' => count($this->allNewImages),
+            'despues_count_previews' => count($this->newImagePreviewUrl)
+        ]);
     }
 
     // Método para marcar una imagen existente para eliminar
@@ -143,8 +230,8 @@ class Edit extends Component
                 'id_category' => 'required|exists:categories,id_category',
                 'id_supplier' => 'required|exists:suppliers,id_supplier',
                 'is_customized' => 'boolean',
-                'newImages' => 'nullable|array|max:5',
-                'newImages.*' => 'image|max:2048', // máximo 2MB por imagen
+                'allNewImages' => 'nullable|array|max:5',
+                'allNewImages.*' => 'sometimes|file|image|max:2048', // máximo 2MB por imagen
             ],
             [
                 'name.required' => 'El nombre del producto es obligatorio.',
@@ -154,15 +241,15 @@ class Edit extends Component
                 'price.required' => 'El precio del producto es obligatorio.',
                 'id_category.required' => 'La categoría del producto es obligatoria.',
                 'id_supplier.required' => 'El proveedor es obligatorio.',
-                'newImages.max' => 'No puedes subir más de 5 imágenes.',
-                'newImages.*.image' => 'Cada archivo debe ser una imagen.',
-                'newImages.*.max' => 'Cada imagen no puede superar los 2MB.',
+                'allNewImages.max' => 'No puedes subir más de 5 imágenes.',
+                'allNewImages.*.image' => 'Cada archivo debe ser una imagen.',
+                'allNewImages.*.max' => 'Cada imagen no puede superar los 2MB.',
             ]
         );
 
         // Validar que después de eliminar y agregar, tengamos al menos 1 imagen
         $remainingImages = count($this->existingImages) - count($this->imagesToDelete);
-        $totalImages = $remainingImages + count($this->newImages);
+        $totalImages = $remainingImages + count($this->allNewImages);
         
         if ($totalImages < 1) {
             $this->addError('images', 'El producto debe tener al menos una imagen.');
@@ -170,7 +257,7 @@ class Edit extends Component
         }
         
         if ($totalImages > 5) {
-            $this->addError('newImages', 'El producto no puede tener más de 5 imágenes en total.');
+            $this->addError('allNewImages', 'El producto no puede tener más de 5 imágenes en total.');
             return;
         }
 
@@ -180,10 +267,10 @@ class Edit extends Component
         try {
             // PASO 1: Subir nuevas imágenes a Firebase si las hay
             $newImageUrls = [];
-            if (!empty($this->newImages)) {
+            if (!empty($this->allNewImages)) {
                 $firebaseStorage = new FirebaseStorage();
                 
-                foreach ($this->newImages as $index => $image) {
+                foreach ($this->allNewImages as $index => $image) {
                     $filename = uniqid() . '.' . $image->getClientOriginalExtension();
                     $realPath = $image->getRealPath();
 

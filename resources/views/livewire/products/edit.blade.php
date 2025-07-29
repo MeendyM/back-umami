@@ -70,6 +70,15 @@
                 <div>
                     <div class="flex items-center">
                         <x-texts.text-small class="text-tx-black font-bold">Imágenes del producto</x-texts.text-small>
+                        {{-- Indicador de carga para imágenes existentes --}}
+                        @if($isLoadingImages)
+                            <div class="ml-2">
+                                <svg class="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        @endif
                     </div>
                     
                     @error('images')
@@ -78,20 +87,35 @@
                     @error('newImages')
                         <x-texts.text-error>{{ $message }}</x-texts.text-error>
                     @enderror
+                    @error('allNewImages')
+                        <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                    @enderror
 
-                    {{-- Imágenes existentes --}}
-                    @if(!empty($existingImages))
-                        <div class="mb-4">
+                    {{-- Loading skeleton para imágenes existentes --}}
+                    @if($isLoadingImages)
+                        <div class="mb-4 animate-pulse">
+                            <x-texts.text-small class="text-gray-400 mb-2">Cargando imágenes actuales...</x-texts.text-small>
+                            <div class="flex justify-center flex-wrap gap-2">
+                                <div class="w-24 h-24 bg-gray-200 rounded-lg"></div>
+                                <div class="w-24 h-24 bg-gray-200 rounded-lg"></div>
+                                <div class="w-24 h-24 bg-gray-200 rounded-lg"></div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Imágenes existentes con animación --}}
+                    @if(!empty($existingImages) && $imagesLoaded)
+                        <div class="mb-4 animate-fade-in">
                             <x-texts.text-small class="text-gray-600 mb-2">Imágenes actuales:</x-texts.text-small>
                             <div class="flex justify-center flex-wrap gap-2">
-                                @foreach ($existingImages as $image)
-                                    <div class="relative">
+                                @foreach ($existingImages as $index => $image)
+                                    <div class="relative animate-scale-in" style="animation-delay: {{ $index * 0.1 }}s;">
                                         <img src="{{ $image['url'] }}"
-                                            class="w-24 h-24 border border-gray-300 rounded-lg object-cover" 
+                                            class="w-24 h-24 border border-gray-300 rounded-lg object-cover transition-all duration-300 hover:shadow-lg" 
                                             alt="Imagen existente" />
                                         <button type="button" 
                                             wire:click="markImageForDeletion({{ $image['id'] }})"
-                                            class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-700"
+                                            class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-700 transition-colors duration-200"
                                             title="Eliminar imagen">
                                             &times;
                                         </button>
@@ -101,22 +125,27 @@
                         </div>
                     @endif
 
-                    {{-- Input para nuevas imágenes --}}
-                    <input type="file" accept="image/*" multiple id="upload-input-edit"
-                        class="hidden" />
+                    {{-- Input para nuevas imágenes (UNA a la vez) --}}
+                    <input type="file" 
+                           accept="image/*" 
+                           id="upload-input-edit"
+                           class="hidden" 
+                           wire:model="newImages"
+                           x-ref="fileInput" />
 
                     {{-- Nuevas imágenes subidas --}}
                     <div class="flex justify-center flex-wrap gap-2 mt-4">
                         @foreach ($newImagePreviewUrl as $index => $url)
-                            <div class="relative">
+                            <div class="relative animate-slide-up" style="animation-delay: {{ $index * 0.1 }}s;">
                                 <img src="{{ $url }}"
-                                    class="w-24 h-24 border border-green-300 rounded-lg object-cover" alt="Nueva imagen" />
+                                    class="w-24 h-24 border border-green-300 rounded-lg object-cover transition-all duration-300 hover:shadow-lg" 
+                                    alt="Nueva imagen" />
                                 <button type="button" wire:click="removeNewImage({{ $index }})"
-                                    class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow">
+                                    class="absolute top-0 right-0 -mt-2 -mr-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-700 transition-colors duration-200">
                                     &times;
                                 </button>
                                 {{-- Indicador de nueva imagen --}}
-                                <div class="absolute bottom-0 left-0 bg-green-500 text-white text-xs px-1 rounded-tr">
+                                <div class="absolute bottom-0 left-0 bg-green-500 text-white text-xs px-1 rounded-tr animate-pulse">
                                     Nueva
                                 </div>
                             </div>
@@ -128,9 +157,23 @@
                         @endphp
                         
                         @if ($totalImages < 5)
-                            <div class="w-24 h-24 border border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-gray-400"
-                                onclick="document.getElementById('upload-input-edit').click();">
-                                <span class="text-2xl text-gray-500 font-bold">+</span>
+                            <div class="w-24 h-24 border border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors duration-200"
+                                onclick="document.getElementById('upload-input-edit').click();"
+                                wire:loading.class="opacity-50 cursor-not-allowed"
+                                wire:target="newImages">
+                                
+                                {{-- Spinner cuando se están subiendo archivos --}}
+                                <div wire:loading wire:target="newImages">
+                                    <svg class="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                
+                                {{-- Botón normal cuando no se está cargando --}}
+                                <div wire:loading.remove wire:target="newImages">
+                                    <span class="text-2xl text-gray-500 font-bold">+</span>
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -163,20 +206,50 @@
         const input = document.getElementById('upload-input-edit');
         if (!input) return;
 
+        // Escuchar evento para cargar imágenes existentes con delay
+        window.addEventListener('loadImages', () => {
+            setTimeout(() => {
+                @this.call('loadExistingImagesWithDelay');
+            }, 300); // 300ms delay para efecto visual
+        });
+
+        // Manejo de subida de archivos con validación y feedback
         input.addEventListener('change', function(event) {
             const files = Array.from(event.target.files);
             if (!files.length) return;
 
-            files.forEach(file => {
-                @this.upload('newImages', file,
-                    () => {
-                        // éxito - la imagen se agregará automáticamente al array
-                    }, 
-                    error => alert('Error al subir imagen: ' + error)
-                );
+            // Validar archivos antes de subir
+            const validFiles = files.filter(file => {
+                // Validar tipo
+                if (!file.type.startsWith('image/')) {
+                    alert(`${file.name} no es una imagen válida.`);
+                    return false;
+                }
+                
+                // Validar tamaño (2MB máximo)
+                const maxSize = 2 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert(`${file.name} es muy grande. Máximo 2MB.`);
+                    return false;
+                }
+                
+                return true;
             });
 
-            event.target.value = '';
+            if (validFiles.length === 0) {
+                event.target.value = '';
+                return;
+            }
+
+            // Limpiar el input después de procesar para permitir seleccionar los mismos archivos otra vez
+            setTimeout(() => {
+                event.target.value = '';
+            }, 100);
+        });
+
+        // Opcional: Escuchar eventos personalizados para feedback adicional
+        window.addEventListener('image-uploaded', (event) => {
+            console.log('Imágenes subidas:', event.detail);
         });
     });
 </script>
