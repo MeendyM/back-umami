@@ -12,14 +12,18 @@ use App\Http\Controllers\Api\OrderItemController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReceipApiController;
 use App\Http\Controllers\Api\SetApiController;
+use App\Http\Controllers\Api\NotificationApiController;
 
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::get('/institutions', [AuthController::class, 'getInstitutions']);
 
 
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user/info', [AuthController::class, 'getUserInfo']);
+    Route::post('/user/update-institution', [AuthController::class, 'updateInstitution']);
 
 
     // Carrito
@@ -41,6 +45,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/receips/add', [ReceipApiController::class, 'addReceip']);
     Route::get('/receips/order/{id_order}', [ReceipApiController::class, 'getReceipsByOrderId']);
+
+    // Notificaciones
+    Route::get('/notifications', [NotificationApiController::class, 'getUserNotifications']);
+    Route::get('/notifications/unread', [NotificationApiController::class, 'getUnreadNotifications']);
+    Route::get('/notifications/unread-count', [NotificationApiController::class, 'getUnreadCount']);
+    Route::get('/notifications/{id}', [NotificationApiController::class, 'getNotification']);
+    Route::post('/notifications/{id}/read', [NotificationApiController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [NotificationApiController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationApiController::class, 'deleteUserNotification']);
 });
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/sets', [SetApiController::class, 'getSets']);

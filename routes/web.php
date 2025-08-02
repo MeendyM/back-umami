@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\WebControllers;
+use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -21,4 +23,7 @@ Route::middleware([
     Route::get('/collections',[WebControllers::class, 'collections'])->name('collections');
     Route::get('/discounts',[WebControllers::class, 'discounts'])->name('discounts');
     Route::get('/orders',[WebControllers::class, 'orders'])->name('orders');
+    Route::get('/users',[UserManagementController::class, 'users'])->name('users');
+    Route::get('/institutions',[UserManagementController::class, 'institutions'])->name('institutions');
+    Route::get('/notifications',[NotificationController::class, 'index'])->name('notifications');
 });

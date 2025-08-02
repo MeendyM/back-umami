@@ -31,6 +31,21 @@
                         {{ __('Órdenes') }}
                     </x-nav-link>
                 </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="{{ route('users') }}" :active="request()->routeIs('users')">
+                        {{ __('Usuarios') }}
+                    </x-nav-link>
+                </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="{{ route('institutions') }}" :active="request()->routeIs('institutions')">
+                        {{ __('Instituciones') }}
+                    </x-nav-link>
+                </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="{{ route('notifications') }}" :active="request()->routeIs('notifications')">
+                        {{ __('Notificaciones') }}
+                    </x-nav-link>
+                </div>
 
             </div>
 
@@ -166,6 +181,15 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('orders') }}" :active="request()->routeIs('orders')">
                 {{ __('Órdenes') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('users') }}" :active="request()->routeIs('users')">
+                {{ __('Usuarios') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('institutions') }}" :active="request()->routeIs('institutions')">
+                {{ __('Instituciones') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('notifications') }}" :active="request()->routeIs('notifications')">
+                {{ __('Notificaciones') }}
             </x-responsive-nav-link>
         </div>
 

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Models\Institution;
 
 class AuthController extends Controller
 {
@@ -17,7 +18,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:6',
-            'id_rol' => 'required|integer',
+            'type' => 'required|string',
             'id_institution' => 'nullable|integer',
         ]);
 
@@ -25,7 +26,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'id_rol' => $request->id_rol,
+            'type' => $request->type,
             'id_institution' => $request->id_institution,
         ]);
 
@@ -72,6 +73,68 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Sesión cerrada correctamente'
+        ]);
+    }
+
+    // Obtener información del usuario
+    public function getUserInfo(Request $request)
+    {
+        $user = $request->user()->load('institution');
+
+        return response()->json([
+            'message' => 'Información del usuario obtenida correctamente',
+            'user' => [
+                'id_user' => $user->id_user,
+                'name' => $user->name,
+                'email' => $user->email,
+                'type' => $user->type,
+                'id_institution' => $user->id_institution,
+                'institution_name' => $user->institution ? $user->institution->name : null,
+                'email_verified_at' => $user->email_verified_at,
+                'current_team_id' => $user->current_team_id,
+                'profile_photo_url' => $user->profile_photo_url,
+            ]
+        ]);
+    }
+
+    // Actualizar institución del usuario
+    public function updateInstitution(Request $request)
+    {
+        $request->validate([
+            'id_institution' => 'required|integer|exists:institutions,id_institution',
+        ]);
+
+        $user = $request->user();
+        $user->id_institution = $request->id_institution;
+        $user->save();
+
+        // Cargar la relación de institución para obtener el nombre
+        $user->load('institution');
+
+        return response()->json([
+            'message' => 'Institución actualizada correctamente',
+            'user' => [
+                'id_user' => $user->id_user,
+                'name' => $user->name,
+                'email' => $user->email,
+                'type' => $user->type,
+                'id_institution' => $user->id_institution,
+                'institution_name' => $user->institution ? $user->institution->name : null,
+                'email_verified_at' => $user->email_verified_at,
+                'current_team_id' => $user->current_team_id,
+                'profile_photo_url' => $user->profile_photo_url,
+            ]
+        ]);
+    }
+
+    // Obtener todas las instituciones
+    public function getInstitutions()
+    {
+        $institutions = Institution::select('id_institution', 'name')->get();
+
+        return response()->json([
+            'message' => 'Instituciones obtenidas correctamente',
+            'institutions' => $institutions
         ]);
     }
 }

@@ -78,6 +78,23 @@ class User extends Authenticatable
     {
         return $this->hasOne(Cart::class, 'id_user');
     }
+
+    public function notifications()
+    {
+        return $this->belongsToMany(Notification::class, 'user_notifications', 'user_id', 'notification_id', 'id_user', 'id_notification')
+                    ->withPivot('read_at')
+                    ->withTimestamps();
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->notifications()->wherePivot('read_at', null);
+    }
+
+    public function sentNotifications()
+    {
+        return $this->hasMany(Notification::class, 'sender_id', 'id_user');
+    }
     protected static function booted()
     {
 
