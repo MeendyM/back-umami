@@ -33,6 +33,7 @@ class User extends Authenticatable
         'type',
         'id_institution',
         'first_steps_completed',
+        'google_data'
     ];
 
     /**
@@ -67,6 +68,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'first_steps_completed' => 'boolean',
+            'google_data' => 'array',
+
         ];
     }
 
@@ -84,8 +87,8 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->belongsToMany(Notification::class, 'user_notifications', 'user_id', 'notification_id', 'id_user', 'id_notification')
-                    ->withPivot('read_at')
-                    ->withTimestamps();
+            ->withPivot('read_at')
+            ->withTimestamps();
     }
 
     public function unreadNotifications()
@@ -97,8 +100,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class, 'sender_id', 'id_user');
     }
-    protected static function booted()
-    {
-
-    }
+    protected static function booted() {}
 }
