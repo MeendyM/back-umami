@@ -25,6 +25,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/info', [AuthController::class, 'getUserInfo']);
     Route::post('/user/update-institution', [AuthController::class, 'updateInstitution']);
 
+    // Primeros pasos
+    Route::post('/user/first-steps', [AuthController::class, 'completeFirstSteps']);
+    // Actualizar datos generales
+    Route::post('/user/update-info', [AuthController::class, 'updateUserInfo']);
+
 
     // Carrito
     Route::post('/cart/add', [CartController::class, 'addItem']);
