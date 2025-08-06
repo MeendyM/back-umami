@@ -18,15 +18,6 @@ use App\Http\Controllers\Api\AuthGoogleApiController;
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::get('/institutions', [AuthController::class, 'getInstitutions']);
 
-// Ruta de prueba para CORS
-Route::get('/test-cors', function () {
-    return response()->json([
-        'message' => 'CORS está funcionando correctamente',
-        'timestamp' => now(),
-        'headers' => request()->headers->all()
-    ]);
-});
-
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/auth/google/callback', [AuthGoogleApiController::class, 'callback']);
 Route::get('/auth/google/check', [AuthGoogleApiController::class, 'check']);
@@ -38,6 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user/info', [AuthController::class, 'getUserInfo']);
     Route::post('/user/update-institution', [AuthController::class, 'updateInstitution']);
+
+
+    Route::post('/user/resend-email-verification', [AuthController::class, 'resendEmailVerification']);
 
     // Primeros pasos
     Route::post('/user/first-steps', [AuthController::class, 'completeFirstSteps']);

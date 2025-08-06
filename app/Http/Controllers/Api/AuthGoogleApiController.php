@@ -179,12 +179,21 @@ class AuthGoogleApiController extends Controller
                 'google_data' => $data,
                 'type' => 'student',
                 'password' => 'password', // No password for Google users
+                'email_verified_at' => now(), // Email verificado automáticamente por Google
             ]);
-            logger()->info('New user created successfully', ['user_id' => $user->id_user, 'email' => $email]);
+            logger()->info('New user created successfully with verified email', ['user_id' => $user->id_user, 'email' => $email]);
         } else {
             logger()->info('User found, updating google_data', ['user_id' => $user->id_user, 'email' => $email]);
-            //$user->name = $name;
+            
+            // Actualizar datos de Google
             $user->google_data = $data;
+            
+            // Si el email no estaba verificado, verificarlo ahora (Google ya lo verificó)
+            if (!$user->email_verified_at) {
+                $user->email_verified_at = now();
+                logger()->info('Email verified automatically via Google', ['user_id' => $user->id_user]);
+            }
+            
             $user->save();
             logger()->info('User updated successfully', ['user_id' => $user->id_user]);
         }
