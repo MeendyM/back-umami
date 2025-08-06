@@ -5,10 +5,13 @@ use App\Http\Controllers\WebControllers;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\VerifyEmailController;
+
 
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->name('verification.verify');
 
 Route::middleware([
     'auth:sanctum',
