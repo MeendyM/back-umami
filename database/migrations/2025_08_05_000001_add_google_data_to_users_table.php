@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::table('users', function (Blueprint $table) {
             $table->json('google_data')->nullable();
+            $table->timestamp('google_token_expires_at')->nullable()->after('google_data');
         });
     }
 
@@ -22,6 +23,7 @@ return new class extends Migration {
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('google_data');
+            $table->dropColumn('google_token_expires_at');
         });
     }
 };

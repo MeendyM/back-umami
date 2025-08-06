@@ -33,7 +33,8 @@ class User extends Authenticatable
         'type',
         'id_institution',
         'first_steps_completed',
-        'google_data'
+        'google_data',
+        'google_token_expires_at'
     ];
 
     /**
@@ -69,6 +70,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'first_steps_completed' => 'boolean',
             'google_data' => 'array',
+            'google_token_expires_at' => 'datetime',
 
         ];
     }
