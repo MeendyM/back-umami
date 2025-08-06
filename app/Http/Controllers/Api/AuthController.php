@@ -21,6 +21,14 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        // Verificar si el usuario existe y tiene registro de Google
+        if ($user && $user->google_data) {
+            return response()->json([
+                'message' => 'Este correo está registrado con Google. Por favor, inicia sesión con Google.',
+                'error_type' => 'google_login_required'
+            ], 400);
+        }
+
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales no son válidas.'],
@@ -42,16 +50,23 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:6',
-            'type' => 'required|string',
-            'id_institution' => 'nullable|integer',
+            
         ]);
+
+        // Verificar si el email ya existe con registro de Google
+        $existingUser = User::where('email', $request->email)->first();
+        if ($existingUser && $existingUser->google_data) {
+            return response()->json([
+                'message' => 'Este correo ya está registrado con Google. Por favor, inicia sesión con Google.',
+                'error_type' => 'google_registration_exists'
+            ], 400);
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'type' => $request->type,
-            'id_institution' => $request->id_institution,
+            'type' => 'student', 
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -137,19 +152,12 @@ class AuthController extends Controller
     {
         $user = $request->user()->load('institution');
 
+        $userArray = $user->toArray();
+        $userArray['institution_name'] = $user->institution ? $user->institution->name : null;
+
         return response()->json([
             'message' => 'Información del usuario obtenida correctamente',
-            'user' => [
-                'id_user' => $user->id_user,
-                'name' => $user->name,
-                'email' => $user->email,
-                'type' => $user->type,
-                'id_institution' => $user->id_institution,
-                'institution_name' => $user->institution ? $user->institution->name : null,
-                'email_verified_at' => $user->email_verified_at,
-                'current_team_id' => $user->current_team_id,
-                'profile_photo_url' => $user->profile_photo_url,
-            ]
+            'user' => $userArray,
         ]);
     }
 
