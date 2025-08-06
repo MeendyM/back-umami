@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,9 +10,10 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use App\Enums\TypeUser;
+use App\Enums\VerificationStatus;
 
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
 
@@ -34,7 +35,8 @@ class User extends Authenticatable
         'id_institution',
         'first_steps_completed',
         'google_data',
-        'google_token_expires_at'
+        'google_token_expires_at',
+        'verification_status',
     ];
 
     /**
@@ -71,7 +73,7 @@ class User extends Authenticatable
             'first_steps_completed' => 'boolean',
             'google_data' => 'array',
             'google_token_expires_at' => 'datetime',
-
+            'verification_status' => VerificationStatus::class,
         ];
     }
 
