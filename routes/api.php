@@ -13,10 +13,24 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReceipApiController;
 use App\Http\Controllers\Api\SetApiController;
 use App\Http\Controllers\Api\NotificationApiController;
+use App\Http\Controllers\Api\AuthGoogleApiController;
 
 Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/institutions', [AuthController::class, 'getInstitutions']);
+
+// Ruta de prueba para CORS
+Route::get('/test-cors', function () {
+    return response()->json([
+        'message' => 'CORS está funcionando correctamente',
+        'timestamp' => now(),
+        'headers' => request()->headers->all()
+    ]);
+});
+
+Route::post('/auth/login', [AuthController::class, 'login']);
+Route::get('/auth/google/callback', [AuthGoogleApiController::class, 'callback']);
+Route::get('/auth/google/check', [AuthGoogleApiController::class, 'check']);
+Route::get('/auth/google/login', [AuthGoogleApiController::class, 'login']);
 
 
 
