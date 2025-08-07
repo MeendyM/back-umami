@@ -20,7 +20,7 @@ class Create extends Component
 
     public $modal = false;
 
-    public $name, $description, $price, $id_category, $id_supplier, $is_customized = false;
+    public $name, $description, $price, $id_category, $id_supplier, $is_customized = false, $only_in_set = false;
     public $imagePreviewUrl = [];
     public $suppliers;
     public $categories;
@@ -91,6 +91,7 @@ class Create extends Component
         $this->id_category = '';
         $this->id_supplier = '';
         $this->is_customized = false;
+        $this->only_in_set = false;
         $this->cleanImages();
 
         //reiniciar las alertas de error
@@ -108,6 +109,7 @@ class Create extends Component
                 'id_category' => 'required|exists:categories,id_category',
                 'id_supplier' => 'required|exists:suppliers,id_supplier',
                 'is_customized' => 'required|boolean',
+                'only_in_set' => 'required|boolean',
                 'images' => 'required|array|min:1|max:5',
             ],
             [
@@ -117,6 +119,7 @@ class Create extends Component
                 'id_category.required' => 'La categoría del producto es obligatoria.',
                 'id_supplier.required' => 'El proveedor del producto es obligatorio.',
                 'is_customized.required' => 'Debe indicar si el producto es personalizado.',
+                'only_in_set.required' => 'Debe indicar si el producto solo se puede comprar en sets.',
                 'images.required' => 'Debes subir al menos una imagen.',
                 'images.*.image' => 'Cada archivo debe ser una imagen.',
             ]
@@ -164,6 +167,7 @@ class Create extends Component
                 'id_category' => $this->id_category,
                 'id_supplier' => $this->id_supplier,
                 'is_customized' => $this->is_customized,
+                'only_in_set' => $this->only_in_set,
             ]);
 
             // PASO 3: Crear las imágenes del producto en base de datos
