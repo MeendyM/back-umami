@@ -74,6 +74,14 @@
                     @enderror
                 </div>
 
+                <div>
+                    <x-checkbox-toggle title="Solo en set" :input="$only_in_set" wire-model="only_in_set" />
+
+                    @error('only_in_set')
+                        <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                    @enderror
+                </div>
+
                 <div class="flex items-center">
                     <x-texts.text-small class="text-tx-black font-bold">Sube imagenes de tu
                         producto</x-texts.text-small>
@@ -81,8 +89,7 @@
                     {{-- <a href="#" class="text-sm text-[#0F4BBD] ml-2 underline"
                         onclick="document.getElementById('upload-input').click();">Subir imagen</a> --}}
 
-                    <input type="file" accept="image/*" multiple id="upload-input"
-                        class="hidden" />
+                    <input type="file" accept="image/*" multiple id="upload-input" class="hidden" />
                 </div>
                 @error('images')
                     <x-texts.text-error>{{ $message }}</x-texts.text-error>

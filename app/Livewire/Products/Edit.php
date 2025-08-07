@@ -20,7 +20,7 @@ class Edit extends Component
     use WithFileUploads;
 
     public $modalEdit;
-    public $name, $description, $price, $id_category, $id_supplier, $is_customized;
+    public $name, $description, $price, $id_category, $id_supplier, $is_customized, $only_in_set;
     public $suppliers, $categories;
     public Product $product;
     
@@ -90,7 +90,8 @@ class Edit extends Component
             $this->id_category = $this->product->id_category;
             $this->id_supplier = $this->product->id_supplier;
             $this->is_customized = $this->product->is_customized;
-            
+            $this->only_in_set = $this->product->only_in_set;
+
             // Limpiar arrays de imágenes antes de cargar nuevos datos
             $this->reset([
                 'existingImages',
@@ -230,6 +231,7 @@ class Edit extends Component
                 'id_category' => 'required|exists:categories,id_category',
                 'id_supplier' => 'required|exists:suppliers,id_supplier',
                 'is_customized' => 'boolean',
+                'only_in_set' => 'boolean',
                 'allNewImages' => 'nullable|array|max:5',
                 'allNewImages.*' => 'sometimes|file|image|max:2048', // máximo 2MB por imagen
             ],
@@ -301,6 +303,7 @@ class Edit extends Component
             $this->product->id_category = $this->id_category;
             $this->product->id_supplier = $this->id_supplier;
             $this->product->is_customized = $this->is_customized;
+            $this->product->only_in_set = $this->only_in_set;
             $this->product->save();
 
             // PASO 3: Eliminar imágenes marcadas para eliminación

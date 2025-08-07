@@ -8,7 +8,7 @@ class Product extends Model
 {
     protected $primaryKey = 'id_product';
 
-    protected $fillable = ['name', 'description', 'price', 'url_imagen', 'id_supplier', 'id_category', 'is_customized'];
+    protected $fillable = ['name', 'description', 'price', 'url_imagen', 'id_supplier', 'id_category', 'is_customized', 'only_in_set'];
 
     //agrear el campo para el arreglo de urls de imagenes y el identificador de la categoría
 
@@ -30,6 +30,14 @@ class Product extends Model
     public function images()
     {
         return $this->hasMany(ProductImage::class, 'product_id', 'id_product');
+    }
+
+    /**
+     * Verifica si este producto solo se puede comprar en sets
+     */
+    public function isOnlyInSet()
+    {
+        return $this->only_in_set;
     }
 
     protected $casts = [
