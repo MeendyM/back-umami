@@ -23,4 +23,9 @@ class Set extends Model
     {
         return $this->belongsToMany(Product::class, 'product_set', 'id_set', 'id_product');
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'set_id', 'id_set');
+    }
 }
