@@ -18,7 +18,7 @@ class VerifyEmailController extends Controller
         }
 
         if ($user->hasVerifiedEmail()) {
-            return view('auth.email_already_verified');
+            return view('auth.verified.email_already_verified');
         }
 
         $user->markEmailAsVerified();
@@ -26,6 +26,6 @@ class VerifyEmailController extends Controller
         $user->save();
 
         Auth::login($user);
-        return view('auth.email_verified');
+        return view('auth.verified.email_verified');
     }
 }
