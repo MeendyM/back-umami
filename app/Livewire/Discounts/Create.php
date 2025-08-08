@@ -15,7 +15,7 @@ class Create extends Component
 
     public $modal = false;
 
-    public $code, $type, $value, $minimum_purchase, $max_uses, $expires_at;
+    public $code, $type, $value, $minimum_purchase, $max_uses, $expires_at, $name, $description;
 
     public function render()
     {
@@ -45,6 +45,8 @@ class Create extends Component
         $this->minimum_purchase = '';
         $this->max_uses = '';
         $this->expires_at = '';
+        $this->name = '';
+        $this->description = '';
     }
 
     public function generateCode()
@@ -60,9 +62,11 @@ class Create extends Component
                 'code' => 'required|string|max:10|unique:discounts,code',
                 'type' => 'required|string|max:255',
                 'value' => 'required|numeric|min:1|max:100',
-                'minimum_purchase' => 'required|string',
+                'minimum_purchase' => 'required|numeric|min:0',
                 'max_uses' => 'required|integer|min:1',
                 'expires_at' => 'nullable|date|after_or_equal:today',
+                'name' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
             ],
             [
                 'code.required' => 'El código es obligatorio.',
@@ -73,17 +77,23 @@ class Create extends Component
                 'value.min' => 'El valor del descuento debe ser al menos 1.',
                 'value.max' => 'El valor del descuento no puede ser mayor a 100.',
                 'minimum_purchase.required' => 'El mínimo de compra es obligatorio.',
+                'minimum_purchase.numeric' => 'El mínimo de compra debe ser un número.',
+                'minimum_purchase.min' => 'El mínimo de compra debe ser al menos 0.',
                 'max_uses.required' => 'El número máximo de usos es obligatorio.',
                 'max_uses.min' => 'El número máximo de usos debe ser al menos 1.',
                 'max_uses.integer' => 'El número máximo de usos debe ser un número entero.',
                 'expires_at.date' => 'La fecha de expiración debe ser una fecha válida.',
                 'expires_at.after_or_equal' => 'La fecha de expiración debe ser hoy o una fecha futura.',
+                'name.required' => 'El nombre del descuento es obligatorio.',
+                'description.required' => 'La descripción del descuento es obligatoria.',
             ]
         );
 
         try {
             Discount::create([
                 'code' => strtoupper($this->code),
+                'name' => $this->name,
+                'description' => $this->description,
                 'type' => $this->type,
                 'value' => $this->value,
                 'minimum_purchase' => $this->minimum_purchase,

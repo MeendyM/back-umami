@@ -41,7 +41,7 @@
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->code }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->type }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->value }}</td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->type_label  }}</td>
+                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->minimum_purchase }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->max_uses }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
                             {{ \Carbon\Carbon::parse($discount->expires_at)->format('d-m-Y') }}</td>

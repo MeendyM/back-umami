@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class Edit extends Component
 {
     public $modalEdit;
-    public $code, $type, $value, $max_uses, $minimum_purchase, $expires_at;
+    public $code, $type, $value, $max_uses, $minimum_purchase, $expires_at, $name, $description;
     public $options;
     public Discount $discount;
 
@@ -44,6 +44,8 @@ class Edit extends Component
         if ($this->discount) {
             $this->modalEdit = true;
             $this->code = $this->discount->code;
+            $this->name = $this->discount->name;
+            $this->description = $this->discount->description;
             $this->type = $this->discount->type;
             $this->value = $this->discount->value;
             $this->minimum_purchase = $this->discount->minimum_purchase;
@@ -57,6 +59,8 @@ class Edit extends Component
         $this->validate(
             [
                 'code' => 'required|string|max:10|unique:discounts,code,' . $this->discount->id_discount . ',id_discount',
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
                 'type' => 'required|string|max:50',
                 'value' => 'required|numeric|min:1|max:100',
                 'minimum_purchase' => 'required|string',
@@ -78,12 +82,16 @@ class Edit extends Component
                 'max_uses.integer' => 'El número máximo de usos debe ser un número entero.',
                 'expires_at.date' => 'La fecha de expiración debe ser una fecha válida.',
                 'expires_at.after_or_equal' => 'La fecha de expiración debe ser hoy o una fecha futura.',
+                'name.required' => 'El nombre del descuento es obligatorio.',
+                'description.required' => 'La descripción del descuento es obligatoria.',
             ]
         );
 
         try {
 
             $this->discount->code = $this->code;
+            $this->discount->name = $this->name;
+            $this->discount->description = $this->description;
             $this->discount->type = $this->type;
             $this->discount->value = $this->value;
             $this->discount->max_uses = $this->max_uses;

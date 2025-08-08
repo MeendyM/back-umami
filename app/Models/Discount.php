@@ -14,6 +14,8 @@ class Discount extends Model
 
     protected $fillable = [
         'code',
+        'name',
+        'description',
         'type',
         'value',
         'max_uses',
@@ -27,10 +29,5 @@ class Discount extends Model
     public function orders()
     {
         return $this->hasMany(Order::class, 'id_discount', 'id_discount');
-    }
-
-    public function getTypeLabelAttribute(): string
-    {
-        return TypeDiscount::labels()[$this->minimum_purchase] ?? '—';
     }
 }

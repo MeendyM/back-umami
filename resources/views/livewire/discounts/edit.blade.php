@@ -22,6 +22,25 @@
                     @enderror
                 </div>
 
+
+                <div>
+                    <x-input-form input="name" placeholder="Nombre">
+                        <x-texts.text-small>Nombre del descuento</x-texts.text-small>
+                    </x-input-form>
+                    @error('name')
+                        <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                    @enderror
+                </div>
+
+                <div>
+                    <x-input-form input="description" placeholder="Descripción">
+                        <x-texts.text-small>Descripción del descuento</x-texts.text-small>
+                    </x-input-form>
+                    @error('description')
+                        <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                    @enderror
+                </div>
+
                 <div>
                     <x-input-form input="type" placeholder="Tipo">
                         <x-texts.text-small>Tipo de descuento</x-texts.text-small>
@@ -41,13 +60,9 @@
                 </div>
 
                 <div>
-                    <x-input-dropdown input="minimum_purchase" title="Mínimo de compra"
-                        placeholder="Selecciona un mínimo">
-                        @foreach ($minimum_purchase_options as $value => $label)
-                            <x-input-dropdown-option value="{{ $value }}">{{ $label }}
-                            </x-input-dropdown-option>
-                        @endforeach
-                    </x-input-dropdown>
+                    <x-input-form input="minimum_purchase" type="number" placeholder="Ej. 100.00">
+                        <x-texts.text-small>Mínimo de compra</x-texts.text-small>
+                    </x-input-form>
                     @error('minimum_purchase')
                         <x-texts.text-error>{{ $message }}</x-texts.text-error>
                     @enderror
