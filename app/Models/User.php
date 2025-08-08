@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -11,6 +10,7 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use App\Enums\TypeUser;
 use App\Enums\VerificationStatus;
+use App\Notifications\CustomVerifyEmail;
 
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -22,6 +22,13 @@ class User extends Authenticatable implements MustVerifyEmail
     use Notifiable;
     use TwoFactorAuthenticatable;
 
+    /**
+     * Override the default email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new CustomVerifyEmail);
+    }
     protected $primaryKey = 'id_user';
 
     protected $fillable = [
