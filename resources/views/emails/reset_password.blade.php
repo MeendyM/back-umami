@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifica tu correo electrónico</title>
+    <title>Recupera tu contraseña</title>
     <style>
         body {
             margin: 0;
@@ -43,7 +43,7 @@
         .icon {
             width: 64px;
             height: 64px;
-            background: linear-gradient(to right, #2563eb, #9333ea);
+            background: linear-gradient(to right, #9333ea, #2563eb);
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -77,7 +77,7 @@
         }
         .button {
             display: inline-block;
-            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            background: linear-gradient(to right, #9333ea, #7c3aed);
             color: white;
             padding: 16px 32px;
             border-radius: 8px;
@@ -86,7 +86,22 @@
             transition: all 0.3s ease;
         }
         .button:hover {
-            background: linear-gradient(to right, #1d4ed8, #1e40af);
+            background: linear-gradient(to right, #7c3aed, #6d28d9);
+        }
+        .warning {
+            background: rgba(55, 65, 81, 0.5);
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .warning-text {
+            color: #9ca3af;
+            font-size: 14px;
+            text-align: center;
+        }
+        .warning-icon {
+            color: #fbbf24;
         }
         .secondary-message {
             color: #9ca3af;
@@ -116,17 +131,17 @@
 
         <!-- Card principal -->
         <div class="card">
-            <!-- Icono de verificación -->
+            <!-- Icono de llave -->
             <div class="icon-container">
                 <div class="icon">
                     <svg width="32" height="32" fill="none" stroke="white" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.414-6.414a6 6 0 019 0z"></path>
                     </svg>
                 </div>
             </div>
 
             <!-- Título -->
-            <div class="title">¡Verifica tu correo electrónico!</div>
+            <div class="title">Recupera tu contraseña</div>
 
             <!-- Saludo personalizado -->
             <div class="greeting">
@@ -135,19 +150,26 @@
 
             <!-- Mensaje principal -->
             <div class="message">
-                Gracias por registrarte en nuestra plataforma. Para activar tu cuenta y disfrutar de todos los beneficios, por favor haz clic en el siguiente botón:
+                Recibimos una solicitud para restablecer tu contraseña. Haz clic en el siguiente botón para continuar:
             </div>
 
             <!-- Botón principal -->
             <div class="button-container">
-                <a href="{{ $verificationUrl }}" class="button">
-                    Verificar mi correo
+                <a href="{{ $resetUrl }}" class="button">
+                    Cambiar mi contraseña
                 </a>
+            </div>
+
+            <!-- Mensaje de seguridad -->
+            <div class="warning">
+                <div class="warning-text">
+                    <span class="warning-icon">⚠️</span> Este enlace expirará en 60 minutos por seguridad.
+                </div>
             </div>
 
             <!-- Mensaje secundario -->
             <div class="secondary-message">
-                Si no creaste una cuenta, puedes ignorar este mensaje.
+                Si no solicitaste este cambio, puedes ignorar este mensaje.
             </div>
         </div>
 

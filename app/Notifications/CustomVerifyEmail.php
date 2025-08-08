@@ -15,7 +15,7 @@ class CustomVerifyEmail extends BaseVerifyEmail
         $verificationUrl = $this->verificationUrl($notifiable);
         return (new MailMessage)
             ->subject('Verifica tu correo electrónico')
-            ->markdown('emails.verify', [
+            ->view('emails.verify', [
                 'user' => $notifiable,
                 'verificationUrl' => $verificationUrl,
             ]);

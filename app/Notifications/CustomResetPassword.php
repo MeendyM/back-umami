@@ -16,7 +16,7 @@ class CustomResetPassword extends BaseResetPassword
 
         return (new MailMessage)
             ->subject('Recupera tu contraseña')
-            ->markdown('emails.reset_password', [
+            ->view('emails.reset_password', [
                 'user' => $notifiable,
                 'resetUrl' => $resetUrl,
             ]);
