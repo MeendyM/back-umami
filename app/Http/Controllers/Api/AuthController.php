@@ -296,5 +296,21 @@ class AuthController extends Controller
         }
     }
 
+        // Enviar email de recuperación de contraseña
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Si el correo existe, se ha enviado un email para restablecer la contraseña.'], 200);
+        }
+
+        $user->sendPasswordResetNotification(app('auth.password.broker')->createToken($user));
+
+        return response()->json(['message' => 'Si el correo existe, se ha enviado un email para restablecer la contraseña.'], 200);
+    }
+
+
 
 }

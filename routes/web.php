@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Http\Controllers\Controller;
@@ -6,13 +7,16 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VerifyEmailController;
+use App\Http\Controllers\ResetPasswordController;
+
 
 
 Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->name('verification.verify');
-
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset.custom');
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.reset.custom.post');
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

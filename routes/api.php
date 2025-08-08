@@ -22,6 +22,7 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/auth/google/callback', [AuthGoogleApiController::class, 'callback']);
 Route::get('/auth/google/check', [AuthGoogleApiController::class, 'check']);
 Route::get('/auth/google/login', [AuthGoogleApiController::class, 'login']);
+Route::post('/user/forgot-password', [AuthController::class, 'forgotPassword']);
 
 
 

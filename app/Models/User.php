@@ -16,6 +16,19 @@ use App\Notifications\CustomVerifyEmail;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
+    use HasFactory;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+
+    /**
+     * Override the default password reset notification.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\CustomResetPassword($token));
+    }
+    use HasApiTokens;
 
     use HasFactory;
     use HasProfilePhoto;
