@@ -81,15 +81,15 @@
                             {{ $order->user->institution->name ?? '-' }}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
-                            <span class="px-2 py-1 text-xs rounded-full 
-                                @if($order->status == 'requested') bg-blue-100 text-blue-800
-                                @elseif($order->status == 'paying') bg-orange-100 text-orange-800
-                                @elseif($order->status == 'under_review') bg-indigo-100 text-indigo-800
-                                @elseif($order->status == 'review') bg-yellow-100 text-yellow-800
-                                @elseif($order->status == 'paid') bg-green-100 text-green-800
-                                @elseif($order->status == 'delivered') bg-purple-100 text-purple-800
-                                @else bg-gray-100 text-gray-800
-                                @endif">
+                            <span
+                                class="px-2 py-1 text-xs rounded-full 
+                                @if ($order->status == 'requested') text-blue-800
+                                @elseif($order->status == 'paying') bg-orange-100
+                                @elseif($order->status == 'under_review')
+                                @elseif($order->status == 'review')
+                                @elseif($order->status == 'paid')
+                                @elseif($order->status == 'delivered')
+                                @else @endif">
                                 {{ $statusLabels[$order->status] ?? ucfirst($order->status) }}
                             </span>
                         </td>
@@ -100,10 +100,10 @@
                             {{ ucfirst($order->payment_type ?? '-') }}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
-                            @if($order->discount_amount)
+                            @if ($order->discount_amount)
                                 <div>
                                     <div class="text-green-600">-${{ number_format($order->discount_amount, 2) }}</div>
-                                    @if($order->discount)
+                                    @if ($order->discount)
                                         <div class="text-xs text-gray-500">{{ $order->discount->name }}</div>
                                     @endif
                                 </div>
@@ -115,10 +115,16 @@
                             ${{ number_format($order->final_total, 2) }}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
-                            {{ $order->created_at->format('d/m/Y') }}
+                            <div>
+
+                                {{ $order->created_at->format('d/m/Y') }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ $order->created_at->format('H:i') }}
+                            </div>
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
-                            <button 
+                            <button
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
                                 wire:click="$dispatch('showReceipts', { orderId: {{ $order->id_order }} })"
                                 wire:loading.attr="disabled">
@@ -127,34 +133,31 @@
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
                             <div class="flex flex-col gap-1 text-xs">
-                                @if($order->status !== 'review')
-                                <button 
-                                    class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
-                                    wire:click="changeStatusToReview({{ $order->id_order }})"
-                                    wire:loading.attr="disabled"
-                                    wire:confirm="¿Marcar como 'Revisar'?">
-                                    Revisar
-                                </button>
-                                @endif
-                                
-                                @if($order->status !== 'paid')
-                                <button 
-                                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
-                                    wire:click="changeStatusToPaid({{ $order->id_order }})"
-                                    wire:loading.attr="disabled"
-                                    wire:confirm="¿Marcar como 'Pagado'?">
-                                    Pagado
-                                </button>
+                                @if ($order->status !== 'review')
+                                    <button
+                                        class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
+                                        wire:click="changeStatusToReview({{ $order->id_order }})"
+                                        wire:loading.attr="disabled" wire:confirm="¿Marcar como 'Revisar'?">
+                                        Revisar
+                                    </button>
                                 @endif
 
-                                @if($order->status !== 'delivered')
-                                <button 
-                                    class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
-                                    wire:click="changeStatusToDelivered({{ $order->id_order }})"
-                                    wire:loading.attr="disabled"
-                                    wire:confirm="¿Marcar como 'Entregado'?">
-                                    Entregado
-                                </button>
+                                @if ($order->status !== 'paid')
+                                    <button
+                                        class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
+                                        wire:click="changeStatusToPaid({{ $order->id_order }})"
+                                        wire:loading.attr="disabled" wire:confirm="¿Marcar como 'Pagado'?">
+                                        Pagado
+                                    </button>
+                                @endif
+
+                                @if ($order->status !== 'delivered')
+                                    <button
+                                        class="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
+                                        wire:click="changeStatusToDelivered({{ $order->id_order }})"
+                                        wire:loading.attr="disabled" wire:confirm="¿Marcar como 'Entregado'?">
+                                        Entregado
+                                    </button>
                                 @endif
                             </div>
                         </td>

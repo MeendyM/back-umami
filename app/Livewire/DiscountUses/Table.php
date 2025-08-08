@@ -12,7 +12,7 @@ class Table extends Component
 
     public $search = '';
     public $perPage = 10;
-    public $sortField = 'name';
+    public $sortField = 'id_discount';
     public $sortAsc = true;
 
     protected $queryString = ['search'];

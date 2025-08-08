@@ -9,7 +9,9 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\DiscountUse;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Api\DiscountController;
 
 use function PHPUnit\Framework\isArray;
 
@@ -333,11 +335,31 @@ class CartController extends Controller
         // 2. Calcular el total
         $total = $orderItems->sum('subtotal');
 
+        // 3. Aplicar descuento si se envió código
+        $discountCode = $request->input('discount_code');
+        $discountAmount = 0;
+        $finalTotal = $total;
+        $discountMessage = null;
+        $discountId = null;
+        if ($discountCode) {
+            $discountResult = app(DiscountController::class)->applyDiscount($discountCode, $userId, $total);
+            if ($discountResult['valid']) {
+                $discountAmount = $discountResult['amount'];
+                $finalTotal = $total - $discountAmount;
+                $discountId = $discountResult['discount_id'] ?? null;
+                $discountMessage = $discountResult['message'];
+            } else {
+                $discountMessage = $discountResult['message'];
+            }
+        }
+
         $newOrder = Order::create([
             'id_user' => $userId,
             'status' => StatusOrder::REQUESTED->value, // Estado inicial
             'total' => $total,
-            'final_total' => $total,
+            'discount_amount' => $discountAmount,
+            'final_total' => $finalTotal,
+            'id_discount' => $discountId,
         ]);
 
         // 4. Actualizar los order_items con el id de la nueva orden
@@ -349,11 +371,29 @@ class CartController extends Controller
         // 5. Limpiar el carrito temporal
         Cart::where('id_user', $userId)->delete();
 
-        return response()->json([
+        // Registrar el uso del descuento si fue aplicado correctamente
+        if ($discountId && $discountAmount > 0) {
+            DiscountUse::create([
+                'id_discount' => $discountId,
+                'id_order' => $newOrder->id_order,
+                'id_user' => $userId,
+                'use_at' => now(),
+            ]);
+        }
+
+        $response = [
             'message' => 'Orden solicitada exitosamente',
             'order_id' => $newOrder->id_order,
             'total' => $total,
-        ]);
+            'final_total' => $finalTotal,
+            'discount_amount' => $discountAmount,
+            'discount_message' => $discountMessage,
+        ];
+        if ($discountCode && !$discountAmount) {
+            $response['message'] .= ' (El código de descuento no es válido, puedes agregarlo después)';
+        }
+
+        return response()->json($response);
     }
 
     public function editCustomTexts(Request $request)
