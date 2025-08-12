@@ -1,4 +1,3 @@
-
 <?php
 
 use App\Http\Controllers\Controller;
@@ -30,7 +29,9 @@ Route::middleware([
     Route::get('/collections',[WebControllers::class, 'collections'])->name('collections');
     Route::get('/discounts',[WebControllers::class, 'discounts'])->name('discounts');
     Route::get('/orders',[WebControllers::class, 'orders'])->name('orders');
+    Route::get('/order-items',[WebControllers::class, 'orderItems'])->name('order-items');
     Route::get('/users',[UserManagementController::class, 'users'])->name('users');
     Route::get('/institutions',[UserManagementController::class, 'institutions'])->name('institutions');
     Route::get('/notifications',[NotificationController::class, 'index'])->name('notifications');
+   
 });

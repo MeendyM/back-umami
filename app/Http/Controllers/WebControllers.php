@@ -25,4 +25,9 @@ class WebControllers extends Controller
     {
         return view('orders.index');
     }
+    public function orderItems()
+    {
+        return view('orders-items.index');
+    }
+   
 }
