@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\Log;
+use App\Models\Set; // Import Set para manejo de sets
+use Illuminate\Support\Facades\DB; // DB para transacciones
 
 use function PHPUnit\Framework\isArray;
 
@@ -43,6 +45,11 @@ class CartController extends Controller
             'user_id' => $userId,
             'request' => $request->all()
         ]);
+
+        // Si viene id_set, procesar flujo de set y salir sin tocar la lógica existente de productos
+        if ($request->filled('id_set')) {
+            return $this->addSetToCart($request, $userId);
+        }
 
         $request->validate([
             'id_product' => 'required|integer|exists:products,id_product',
@@ -197,6 +204,61 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Item eliminado del carrito'
+        ], 200);
+    }
+
+    /**
+     * Elimina un set (OrderItem padre) y todos sus OrderItems hijos (productos del set)
+     */
+    public function removeSet(Request $request)
+    {
+        $userId = $request->user()->id_user;
+
+        $validated = $request->validate([
+            'id_set_item' => 'required|integer', // id_order_item del OrderItem padre (set)
+        ]);
+
+        $parent = OrderItem::where('id_user', $userId)
+            ->where('id_order_item', $validated['id_set_item'])
+            ->whereNull('id_order') // solo en carrito (no asignado a orden todavía)
+            ->whereNotNull('id_set') // debe ser un item de set
+            ->first();
+
+        if (!$parent) {
+            Log::warning('Set a eliminar no encontrado o no pertenece al usuario', [
+                'user_id' => $userId,
+                'id_set_item' => $validated['id_set_item']
+            ]);
+            return response()->json(['message' => 'Set no encontrado en el carrito'], 404);
+        }
+
+        // Reunir IDs de hijos antes de borrar para limpiar Cart
+        $childIds = $parent->children()->pluck('id_order_item')->toArray();
+
+        DB::beginTransaction();
+        try {
+            // Eliminar relaciones en Cart de hijos y padre
+            if (!empty($childIds)) {
+                Cart::whereIn('id_order_item', $childIds)->delete();
+            }
+            Cart::where('id_order_item', $parent->id_order_item)->delete();
+
+            // Borrar el padre (por FK con cascadeOnDelete se eliminan hijos)
+            $parent->delete();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al eliminar set del carrito', [
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['message' => 'No se pudo eliminar el set'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Set eliminado del carrito',
+            'deleted_parent_id' => $validated['id_set_item'],
+            'deleted_children_ids' => $childIds,
         ], 200);
     }
 
@@ -507,5 +569,115 @@ class CartController extends Controller
         Log::info('Proceso de agregar múltiples items completado', ['addedItemsCount' => count($addedItems)]);
 
         return response()->json(['results' => $addedItems], 200);
+    }
+
+    /**
+     * Agrega un set al carrito creando:
+     * - Un OrderItem padre con id_set (subtotal = precio del set si existe)
+     * - OrderItems por producto con only_in_set=true y parent asignado
+     */
+    private function addSetToCart(Request $request, int $userId)
+    {
+        // Validación específica para sets
+        $validated = $request->validate([
+            'id_set' => 'required|integer|exists:sets,id_set',
+            //'quantity' => 'nullable|integer|min:1',
+            'products' => 'required|array|min:1',
+            'products.*.id_product' => 'required|integer|exists:products,id_product',
+            'products.*.customs' => 'nullable|array',
+            'products.*.customs.*' => 'string',
+        ]);
+
+        // Definir cantidad por defecto a 1 (si se envía, se respeta)
+        $quantity = (int) $request->input('quantity', 1);
+
+        $set = Set::find($validated['id_set']);
+
+        if (!$set) {
+            Log::warning('Set no encontrado', ['id_set' => $validated['id_set']]);
+            return response()->json(['message' => 'Set no encontrado'], 404);
+        }
+
+        // Calcular suma de precios de productos si el set no tiene precio definido
+        $sumProducts = 0;
+        foreach ($validated['products'] as $p) {
+            $product = Product::find($p['id_product']);
+            if (!$product) {
+                Log::warning('Producto no encontrado al agregar set', ['id_product' => $p['id_product']]);
+                return response()->json(['message' => 'Producto no encontrado'], 404);
+            }
+            $sumProducts += ($product->price ?? 0);
+        }
+
+        $unitSetPrice = $set->price ?? $sumProducts; // precio unitario del set
+
+        $result = DB::transaction(function () use ($userId, $set, $quantity, $validated, $unitSetPrice, $sumProducts) {
+            // Crear OrderItem para el set (ítem valorado)
+            $setItem = OrderItem::create([
+                'id_user' => $userId,
+                'id_set' => $set->id_set,
+                'id_product' => null,
+                'quantity' => $quantity,
+                'subtotal' => ($set->price !== null ? ($set->price * $quantity) : 0), // se ajusta si no hay price
+                'custom_text' => [],
+                'is_customized' => false,
+                'type_order' => 'set',
+            ]);
+
+            // Ajustar subtotal si el set no tiene price definido
+            if ($set->price === null) {
+                $setItem->subtotal = $sumProducts * $quantity;
+                $setItem->save();
+            }
+
+            Cart::create([
+                'id_user' => $userId,
+                'id_order_item' => $setItem->id_order_item,
+            ]);
+
+            Log::info('OrderItem de set creado', [
+                'set_item' => $setItem
+            ]);
+
+            // Crear OrderItems por producto del set, marcando only_in_set=true, parent asignado y subtotal=0
+            $productItems = [];
+            foreach ($validated['products'] as $p) {
+                $product = Product::find($p['id_product']);
+                if (!$product) {
+                    continue; // validado arriba
+                }
+
+                $customs = $p['customs'] ?? [];
+                $item = OrderItem::create([
+                    'id_user' => $userId,
+                    'id_set' => $set->id_set,
+                    'id_parent_order_item' => $setItem->id_order_item,
+                    'id_product' => $product->id_product,
+                    'quantity' => $quantity,
+                    'subtotal' => 0, // el precio lo lleva el ítem del set
+                    'custom_text' => $customs,
+                    'is_customized' => (bool)($product->is_customized ?? false),
+                    'only_in_set' => true,
+                    // type_order se mantiene por defecto 'product'
+                ]);
+
+                Cart::create([
+                    'id_user' => $userId,
+                    'id_order_item' => $item->id_order_item,
+                ]);
+
+                $productItems[] = $item;
+            }
+
+            return [$setItem, $productItems];
+        });
+
+        [$setItem, $productItems] = $result;
+
+        return response()->json([
+            'message' => 'Set agregado al carrito',
+            'set_item' => $setItem,
+            'product_items' => $productItems,
+        ], 201);
     }
 }
