@@ -68,7 +68,7 @@ class Table extends Component
     {
         $query = OrderItem::query()
             ->with(['set', 'children', 'product.supplier'])
-            ->whereNull('id_order'); // solo carrito/pedidos a proveedor pendientes
+            ->whereNotNull('id_order'); // solo items con orden confirmada
 
         if ($this->filterType === 'product') {
             $query->where('type_order', OrderItemType::PRODUCT);
