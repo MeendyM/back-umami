@@ -16,7 +16,10 @@ class Set extends Model
         'name',
         'description',
         'url_image',
-        'id_discount'
+        'id_discount',
+        'price',
+        'only_in_set',
+        'id_supplier',
     ];
 
     public function products()
@@ -24,8 +27,16 @@ class Set extends Model
         return $this->belongsToMany(Product::class, 'product_set', 'id_set', 'id_product');
     }
 
+    /**
+     * Proveedor principal del set (opcional)
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'id_supplier');
+    }
+
     public function orderItems()
     {
-        return $this->hasMany(OrderItem::class, 'set_id', 'id_set');
+        return $this->hasMany(OrderItem::class, 'id_set', 'id_set');
     }
 }
