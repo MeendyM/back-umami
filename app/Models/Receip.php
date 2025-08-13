@@ -8,7 +8,17 @@ class Receip extends Model
 {
     protected $primaryKey = 'id_receip';
 
-    protected $fillable = ['id_order', 'id_user', 'amount', 'id_transaction', 'url_img'];
+    protected $fillable = [
+        'id_order', 'id_user', 'amount', 'id_transaction', 'url_img', 'status'
+    ];
+
+    protected $casts = [
+        'status' => \App\Enums\ReceipStatus::class,
+    ];
+
+    protected $attributes = [
+        'status' => 'enviado',
+    ];
 
     public function order()
     {
