@@ -32,7 +32,8 @@ class OrderController extends Controller
         $order = Order::where('id_order', $id_order)
             ->where('id_user', $userId)
             ->with([
-                'orderItems.product:id_product,name,price'
+                'orderItems.product',
+                'orderItems.set'
             ])
             ->first();
 
