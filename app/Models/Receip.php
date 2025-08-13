@@ -21,7 +21,7 @@ class Receip extends Model
 
 
     protected $attributes = [
-        'status' => 'enviado',
+        'status' => 'sent',
         'payment_type' => 'cash',
     ];
 

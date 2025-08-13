@@ -14,17 +14,21 @@ class Notification extends Model
 
     protected $primaryKey = 'id_notification';
 
+
     protected $fillable = [
         'user_id',
         'title',
         'message',
         'read',
         'type',
+        'data',
     ];
+
 
     protected $casts = [
         'read' => 'boolean',
         'type' => \App\Enums\NotificationType::class,
+        'data' => 'array',
     ];
 
     public function user()

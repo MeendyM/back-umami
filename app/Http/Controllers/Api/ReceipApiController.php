@@ -132,7 +132,7 @@ class ReceipApiController extends Controller
         if (!$receip) {
             return response()->json(['message' => 'Receip not found'], 404);
         }
-        if ($receip->status !== \App\Enums\ReceipStatus::REVISAR) {
+        if ($receip->status !== \App\Enums\ReceipStatus::REVIEW) {
             return response()->json(['message' => 'Only receips with status "revisar" can be edited'], 403);
         }
 
@@ -145,7 +145,7 @@ class ReceipApiController extends Controller
         $receip->amount = $validated['amount'];
         $receip->id_transaction = $validated['id_transaction'];
         $receip->url_img = $validated['url_img'] ?? $receip->url_img;
-        $receip->status = \App\Enums\ReceipStatus::REENVIADO;
+        $receip->status = \App\Enums\ReceipStatus::RESENT;
         $receip->save();
 
         return response()->json(['message' => 'Receip updated and resent', 'receip' => $receip], 200);

@@ -3,19 +3,20 @@
 namespace App\Enums;
 
 enum ReceipStatus: string
+
 {
-    case APROBADO = 'aprobado';
-    case REVISAR = 'revisar';
-    case ENVIADO = 'enviado';
-    case REENVIADO = 'reenviado';
+    case APPROVED = 'approved';
+    case REVIEW = 'review';
+    case SENT = 'sent';
+    case RESENT = 'resent';
 
     public static function labels(): array
     {
         return [
-            self::APROBADO->value => 'Aprobado',
-            self::REVISAR->value => 'Revisar',
-            self::ENVIADO->value => 'Enviado',
-            self::REENVIADO->value => 'Reenviado',
+            self::APPROVED->value => 'Aprobado',
+            self::REVIEW->value => 'Revisar',
+            self::SENT->value => 'Enviado',
+            self::RESENT->value => 'Reenviado',
         ];
     }
 }

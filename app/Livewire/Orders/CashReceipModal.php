@@ -79,7 +79,7 @@ class CashReceipModal extends Component
             'id_user' => $userId,
             'amount' => $this->amount,
             'url_img' => $url,
-            'status' => 'enviado',
+            'status' => 'sent',
             'payment_type' => ReceipPaymentType::CASH->value,
             'id_transaction' => '',
         ]);
