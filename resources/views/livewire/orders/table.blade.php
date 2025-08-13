@@ -61,7 +61,7 @@
                             <x-sort-icon field="created_at" :sortField="$sortField" :sortAsc="$sortAsc" />
                         </div>
                     </th>
-                    <th class="px-2 py-2 text-center">Ver</th>
+                    <th class="px-2 py-2 text-center">Ver / otras acciones</th>
                     <th class="px-2 py-2 rounded-tr-md text-center">Marcar como</th>
                 </tr>
             </thead>
@@ -118,22 +118,28 @@
                             {{ $order->created_at->format('d/m/Y') }}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
-                             <div class="flex flex-col gap-1 text-xs">
-                            <button 
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
-                                wire:click="$dispatch('showReceipts', { orderId: {{ $order->id_order }} })"
+                            <div class="flex flex-col gap-1 text-xs">
+                                <button 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
+                                    wire:click="$dispatch('showReceipts', { orderId: {{ $order->id_order }} })"
+                                    wire:loading.attr="disabled">
+                                    Ver Recibos
+                                </button>
+                                <button 
+                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
+                                    wire:click="$dispatch('showOrderItems', { orderId: {{ $order->id_order }} })"
+                                    wire:loading.attr="disabled">
+                                    Ver Productos
+                                </button>
+                                   <button 
+                                class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
+                                wire:click="$dispatch('showCashReceipModal', { orderId: {{ $order->id_order }} })"
                                 wire:loading.attr="disabled">
-                                Ver Recibos
+                                Abono efectivo
                             </button>
-
-                             <button 
-                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
-                                wire:click="$dispatch('showOrderItems', { orderId: {{ $order->id_order }} })"
-                                wire:loading.attr="disabled">
-                                Ver Productos
-                            </button>
-                        </div>
+                            </div>
                         </td>
+                      
                      
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
                             <div class="flex flex-col gap-1 text-xs">
@@ -205,8 +211,12 @@
     {{-- Modal para ver recibos --}}
     @livewire('orders.receipts-modal', [], key('orders.receipts-modal'))
 
+
     {{-- Modal para ver productos de la orden --}}
     @livewire('orders.order-items-modal', [], key('orders.order-items-modal'))
+
+    {{-- Modal para abono en efectivo --}}
+    @livewire('orders.cash-receip-modal', [], key('orders.cash-receip-modal'))
 
 
 </div>

@@ -74,6 +74,7 @@ class ReceipApiController extends Controller
             Log::info('Estado de orden cambiado a paying', ['order_id' => $order->id_order]);
         }
 
+        $validatedData['payment_type'] = \App\Enums\ReceipPaymentType::TRANSFER->value;
         $receip = Receip::create($validatedData);
         Log::info('Recibo creado exitosamente', ['receip' => $receip]);
 
@@ -101,6 +102,11 @@ class ReceipApiController extends Controller
     {
         \Illuminate\Support\Facades\Log::info('Buscando recibos para la orden', ['id_order' => $id_order]);
         $receips = Receip::where('id_order', $id_order)->get();
+        // Agregar tipo y label a cada recibo
+        foreach ($receips as $receip) {
+            $receip->type = $receip->payment_type;
+            $receip->type_label = \App\Enums\ReceipPaymentType::labels()[$receip->payment_type->value ?? $receip->payment_type] ?? $receip->payment_type;
+        }
 
         if ($receips->isEmpty()) {
             \Illuminate\Support\Facades\Log::warning('No se encontraron recibos para la orden', ['id_order' => $id_order]);
