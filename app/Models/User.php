@@ -31,7 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasApiTokens;
 
     use HasFactory;
-    use HasProfilePhoto;
+    use HasProfilePhoto;    
     use Notifiable;
     use TwoFactorAuthenticatable;
 
@@ -94,6 +94,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'google_data' => 'array',
             'google_token_expires_at' => 'datetime',
             'verification_status' => VerificationStatus::class,
+            'type' => TypeUser::class,
         ];
     }
 
