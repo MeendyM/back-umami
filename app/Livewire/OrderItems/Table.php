@@ -17,7 +17,7 @@ class Table extends Component
     public int $perPage = 10;
     public string $sortField = 'id_order_item';
     public bool $sortAsc = false;
-    public string $filterType = 'mandatory_sets'; // mandatory_sets | optional_sets | individual_products | all
+    public string $filterType = 'mandatory_sets'; // mandatory_sets | optional_sets | individual_products | all_products | all
     public bool $showGrouped = false; // Nueva propiedad para mostrar vista agrupada
     public array $expandedGroups = []; // Para controlar qué grupos están expandidos
 
@@ -97,6 +97,77 @@ class Table extends Component
         }
     }
 
+    public function markGroupAsOrdered(int $groupIndex): void
+    {
+        $groupedItems = $this->getGroupedItems();
+        
+        if (!isset($groupedItems[$groupIndex])) {
+            session()->flash('error', 'Grupo no encontrado.');
+            return;
+        }
+        
+        $group = $groupedItems[$groupIndex];
+        $updatedCount = 0;
+        
+        foreach ($group->items as $item) {
+            if ($item->type_order === OrderItemType::PRODUCT && $item->supplier_status !== SupplierOrderStatus::DELIVERED) {
+                $item->supplier_status = SupplierOrderStatus::ORDERED;
+                $item->supplier_order_date = now();
+                $item->save();
+                $updatedCount++;
+            }
+        }
+        
+        session()->flash('message', "Se marcaron {$updatedCount} items como pedidos para el grupo: " . ($group->set_name ?? $group->product_name));
+    }
+
+    public function markGroupAsDelivered(int $groupIndex): void
+    {
+        $groupedItems = $this->getGroupedItems();
+        
+        if (!isset($groupedItems[$groupIndex])) {
+            session()->flash('error', 'Grupo no encontrado.');
+            return;
+        }
+        
+        $group = $groupedItems[$groupIndex];
+        $updatedCount = 0;
+        
+        foreach ($group->items as $item) {
+            if ($item->type_order === OrderItemType::PRODUCT) {
+                $item->supplier_status = SupplierOrderStatus::DELIVERED;
+                $item->save();
+                $updatedCount++;
+            }
+        }
+        
+        session()->flash('message', "Se marcaron {$updatedCount} items como entregados para el grupo: " . ($group->set_name ?? $group->product_name));
+    }
+
+    public function markGroupAsNotOrdered(int $groupIndex): void
+    {
+        $groupedItems = $this->getGroupedItems();
+        
+        if (!isset($groupedItems[$groupIndex])) {
+            session()->flash('error', 'Grupo no encontrado.');
+            return;
+        }
+        
+        $group = $groupedItems[$groupIndex];
+        $updatedCount = 0;
+        
+        foreach ($group->items as $item) {
+            if ($item->type_order === OrderItemType::PRODUCT) {
+                $item->supplier_status = SupplierOrderStatus::NOT_ORDERED;
+                $item->supplier_order_date = null;
+                $item->save();
+                $updatedCount++;
+            }
+        }
+        
+        session()->flash('message', "Se marcaron {$updatedCount} items como no pedidos para el grupo: " . ($group->set_name ?? $group->product_name));
+    }
+
     protected function getGroupedItems()
     {
         $query = $this->baseQuery();
@@ -163,6 +234,29 @@ class Table extends Component
                     ];
                 })
                 ->values();
+                
+        } elseif ($this->filterType === 'all_products') {
+            // Para todos los productos (sets opcionales + individuales), agrupar por id_product
+            return $query->where('type_order', OrderItemType::PRODUCT)
+                ->get()
+                ->groupBy('id_product')
+                ->map(function ($items, $productId) {
+                    $firstItem = $items->first();
+                    return (object) [
+                        'type' => 'grouped_product',
+                        'id_product' => $productId,
+                        'product_name' => $firstItem->product?->name ?? '-',
+                        'supplier_name' => $firstItem->product?->supplier?->name ?? '-',
+                        'total_quantity' => $items->sum('quantity'),
+                        'items_count' => $items->count(),
+                        'items' => $items,
+                        'avg_supplier_status' => $this->getAverageStatus($items),
+                        'has_set_items' => $items->whereNotNull('id_set')->count() > 0,
+                        'has_individual_items' => $items->whereNull('id_set')->count() > 0,
+                        'is_from_optional_sets' => $items->whereNotNull('id_set')->first()?->set?->only_in_set === false,
+                    ];
+                })
+                ->values();
         }
         
         return collect();
@@ -180,13 +274,24 @@ class Table extends Component
             return $status?->value ?? 'not_ordered';
         });
         
-        // Determinar el estado predominante
-        if ($statusCounts->get('delivered', 0) === $statuses->count()) {
+        $totalItems = $statuses->count();
+        
+        // Determinar el estado predominante o mixto
+        if ($statusCounts->get('delivered', 0) === $totalItems) {
             return 'delivered';
-        } elseif ($statusCounts->get('ordered', 0) > 0) {
+        } elseif ($statusCounts->get('ordered', 0) === $totalItems) {
             return 'ordered';
-        } else {
+        } elseif ($statusCounts->get('not_ordered', 0) === $totalItems) {
             return 'not_ordered';
+        } else {
+            // Estado mixto - retornamos el estado más avanzado pero indicamos que es mixto
+            if ($statusCounts->get('delivered', 0) > 0) {
+                return 'mixed_delivered';
+            } elseif ($statusCounts->get('ordered', 0) > 0) {
+                return 'mixed_ordered';
+            } else {
+                return 'not_ordered';
+            }
         }
     }
 
@@ -231,6 +336,22 @@ class Table extends Component
                       ->whereNull('id_set');
                 break;
                 
+            case 'all_products':
+                // Todos los productos (de sets opcionales + individuales)
+                $query->where('type_order', OrderItemType::PRODUCT)
+                      ->where(function ($q) {
+                          // Productos individuales (sin set)
+                          $q->whereNull('id_set')
+                            // O productos de sets opcionales
+                            ->orWhere(function ($setQuery) {
+                                $setQuery->whereNotNull('id_set')
+                                       ->whereHas('set', function ($s) {
+                                           $s->where('only_in_set', false);
+                                       });
+                            });
+                      });
+                break;
+                
             case 'all':
                 // Todos los items
                 break;
@@ -269,7 +390,7 @@ class Table extends Component
         $items = null;
         $groupedItems = null;
         
-        if ($this->showGrouped && in_array($this->filterType, ['mandatory_sets', 'optional_sets', 'individual_products'])) {
+        if ($this->showGrouped && in_array($this->filterType, ['mandatory_sets', 'optional_sets', 'individual_products', 'all_products'])) {
             $groupedItems = $this->getGroupedItems();
             
             // Debug temporal para ver qué se está agrupando
@@ -365,6 +486,41 @@ class Table extends Component
                     $stats['unique_products'] = OrderItem::whereNotNull('id_order')
                         ->where('type_order', OrderItemType::PRODUCT)
                         ->whereNull('id_set')
+                        ->distinct('id_product')
+                        ->count();
+                }
+                break;
+                
+            case 'all_products':
+                // Contar todos los productos (sets opcionales + individuales)
+                $stats['total_products_from_sets'] = OrderItem::whereNotNull('id_order')
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->whereNotNull('id_set')
+                    ->whereHas('set', function ($q) {
+                        $q->where('only_in_set', false);
+                    })
+                    ->sum('quantity');
+                    
+                $stats['total_individual_products'] = OrderItem::whereNotNull('id_order')
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->whereNull('id_set')
+                    ->sum('quantity');
+                    
+                $stats['total_products'] = $stats['total_products_from_sets'] + $stats['total_individual_products'];
+                    
+                // Si está agrupado, mostrar productos únicos
+                if ($this->showGrouped) {
+                    $stats['unique_products'] = OrderItem::whereNotNull('id_order')
+                        ->where('type_order', OrderItemType::PRODUCT)
+                        ->where(function ($q) {
+                            $q->whereNull('id_set')
+                              ->orWhere(function ($setQuery) {
+                                  $setQuery->whereNotNull('id_set')
+                                         ->whereHas('set', function ($s) {
+                                             $s->where('only_in_set', false);
+                                         });
+                              });
+                        })
                         ->distinct('id_product')
                         ->count();
                 }

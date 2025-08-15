@@ -13,25 +13,21 @@
                 class="px-3 py-2 rounded text-sm {{ $filterType === 'individual_products' ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
             Productos Individuales
         </button>
-        <button wire:click="$set('filterType', 'all')" 
-                class="px-3 py-2 rounded text-sm {{ $filterType === 'all' ? 'bg-gray-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
-            Ver Todos
+        <button wire:click="$set('filterType', 'all_products')" 
+                class="px-3 py-2 rounded text-sm {{ $filterType === 'all_products' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+            Todos los Productos
         </button>
+     
     </div>
 
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <div class="flex gap-2 items-center">
             <input type="text" wire:model.debounce.500ms="search" placeholder="Buscar por ID, producto, proveedor o set" class="border rounded px-3 py-2 w-64">
-            <select wire:model="filterType" class="border rounded px-3 py-2">
-                <option value="mandatory_sets">Sets Obligatorios</option>
-                <option value="optional_sets">Sets Opcionales</option>
-                <option value="individual_products">Productos Individuales</option>
-                <option value="all">Todos</option>
-            </select>
+           
         </div>
         <div class="ml-auto flex gap-2 items-center text-sm text-gray-600">
             {{-- Toggle para vista agrupada --}}
-            @if (in_array($filterType, ['mandatory_sets', 'optional_sets', 'individual_products']))
+            @if (in_array($filterType, ['mandatory_sets', 'optional_sets', 'individual_products', 'all_products']))
                 <label class="flex items-center gap-2 mr-4">
                     <input type="checkbox" wire:model="showGrouped" class="rounded">
                     <span class="text-sm">Vista agrupada</span>
@@ -51,6 +47,19 @@
     @if (session('debug'))
         <div class="mb-4 p-3 bg-yellow-50 rounded border border-yellow-200">
             <div class="text-sm text-yellow-700">{{ session('debug') }}</div>
+        </div>
+    @endif
+
+    {{-- Success/Error messages --}}
+    @if (session('message'))
+        <div class="mb-4 p-3 bg-green-50 rounded border border-green-200">
+            <div class="text-sm text-green-700">{{ session('message') }}</div>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="mb-4 p-3 bg-red-50 rounded border border-red-200">
+            <div class="text-sm text-red-700">{{ session('error') }}</div>
         </div>
     @endif
 
@@ -86,6 +95,21 @@
                     @else
                         <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos sin set asociado
                     @endif
+                @elseif ($filterType === 'all_products')
+                    <div class="font-medium mb-1">Todos los Productos</div>
+                    <div class="mb-2 text-blue-600">Productos de sets opcionales + productos individuales</div>
+                    @if ($showGrouped && isset($stats['unique_products']))
+                        <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
+                        <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales
+                        <div class="text-xs mt-1 text-blue-500">
+                            ({{ $stats['total_products_from_sets'] ?? 0 }} de sets + {{ $stats['total_individual_products'] ?? 0 }} individuales)
+                        </div>
+                    @else
+                        <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos totales
+                        <div class="text-xs mt-1 text-blue-500">
+                            ({{ $stats['total_products_from_sets'] ?? 0 }} de sets + {{ $stats['total_individual_products'] ?? 0 }} individuales)
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
@@ -110,6 +134,8 @@
                         <th class="px-4 py-2 text-left">Estado General</th>
                         @if ($filterType === 'optional_sets')
                             <th class="px-4 py-2 text-left">Origen</th>
+                        @elseif ($filterType === 'all_products')
+                            <th class="px-4 py-2 text-left">Origen</th>
                         @endif
                         <th class="px-4 py-2 text-left">Acciones</th>
                     </tr>
@@ -132,6 +158,14 @@
                                             @else
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
                                             @endif
+                                        @elseif ($filterType === 'all_products')
+                                            @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 ml-2">Mixto</span>
+                                            @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700 ml-2">De Set Opcional</span>
+                                            @else
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
+                                            @endif
                                         @else
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Producto</span>
                                         @endif
@@ -147,11 +181,22 @@
                             </td>
                             <td class="px-4 py-2">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
-                                    @if($grouped->avg_supplier_status === 'not_ordered') bg-gray-100 text-gray-700
-                                    @elseif($grouped->avg_supplier_status === 'ordered') bg-blue-100 text-blue-700
-                                    @elseif($grouped->avg_supplier_status === 'delivered') bg-green-100 text-green-700
+                                    @if(str_starts_with($grouped->avg_supplier_status, 'mixed'))
+                                        bg-orange-100 text-orange-700
+                                    @elseif($grouped->avg_supplier_status === 'not_ordered') 
+                                        bg-gray-100 text-gray-700
+                                    @elseif($grouped->avg_supplier_status === 'ordered') 
+                                        bg-blue-100 text-blue-700
+                                    @elseif($grouped->avg_supplier_status === 'delivered') 
+                                        bg-green-100 text-green-700
                                     @endif">
-                                    {{ App\Enums\SupplierOrderStatus::labels()[$grouped->avg_supplier_status] }}
+                                    @if($grouped->avg_supplier_status === 'mixed_delivered')
+                                        Mixto (algunos entregados)
+                                    @elseif($grouped->avg_supplier_status === 'mixed_ordered')
+                                        Mixto (algunos pedidos)
+                                    @else
+                                        {{ App\Enums\SupplierOrderStatus::labels()[$grouped->avg_supplier_status] ?? 'Estado mixto' }}
+                                    @endif
                                 </span>
                             </td>
                             @if ($filterType === 'optional_sets')
@@ -164,25 +209,79 @@
                                         <span class="text-sm text-green-600">Solo individual</span>
                                     @endif
                                 </td>
+                            @elseif ($filterType === 'all_products')
+                                <td class="px-4 py-2">
+                                    @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
+                                        <span class="text-sm text-purple-600 font-medium">Mixto</span>
+                                    @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
+                                        <span class="text-sm text-blue-600">De sets opcionales</span>
+                                    @else
+                                        <span class="text-sm text-green-600">Solo individual</span>
+                                    @endif
+                                </td>
                             @endif
                             <td class="px-4 py-2">
-                                <button wire:click="toggleGroupedDetails({{ $loop->index }})" 
-                                        class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs">
-                                    @if (in_array($loop->index, $expandedGroups))
-                                        Ocultar detalles
-                                    @else
-                                        Ver detalles ({{ $grouped->items_count }})
-                                    @endif
-                                </button>
+                                <div class="flex flex-col gap-2">
+                                    {{-- Acciones grupales --}}
+                                    <div class="flex flex-col gap-1">
+                                        @if(in_array($grouped->avg_supplier_status, ['not_ordered', 'mixed_ordered']))
+                                            <button wire:click="markGroupAsOrdered({{ $loop->index }})" 
+                                                    class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">
+                                                @if($grouped->avg_supplier_status === 'mixed_ordered')
+                                                    Marcar todos como pedidos
+                                                @else
+                                                    Marcar grupo como pedido
+                                                @endif
+                                            </button>
+                                        @endif
+                                        
+                                        @if(in_array($grouped->avg_supplier_status, ['ordered', 'mixed_ordered', 'mixed_delivered']))
+                                            <button wire:click="markGroupAsDelivered({{ $loop->index }})" 
+                                                    class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">
+                                                @if(str_starts_with($grouped->avg_supplier_status, 'mixed'))
+                                                    Marcar todos como entregados
+                                                @else
+                                                    Marcar grupo como entregado
+                                                @endif
+                                            </button>
+                                        @endif
+                                        
+                                        {{-- Botón para resetear estado --}}
+                                        @if($grouped->avg_supplier_status !== 'not_ordered')
+                                            <button wire:click="markGroupAsNotOrdered({{ $loop->index }})" 
+                                                    class="px-2 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs"
+                                                    onclick="return confirm('¿Estás seguro de que quieres resetear el estado de todos los items?')">
+                                                Resetear grupo
+                                            </button>
+                                        @endif
+                                    </div>
+                                    
+                                    {{-- Botón de detalles --}}
+                                    <button wire:click="toggleGroupedDetails({{ $loop->index }})" 
+                                            class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs">
+                                        @if (in_array($loop->index, $expandedGroups))
+                                            Ocultar detalles
+                                        @else
+                                            Ver detalles ({{ $grouped->items_count }})
+                                        @endif
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         
                         {{-- Fila expandible con detalles --}}
                         @if (in_array($loop->index, $expandedGroups))
                             <tr>
-                                <td colspan="{{ $filterType === 'optional_sets' ? '7' : '6' }}" class="px-4 py-2 bg-gray-50">
+                                <td colspan="{{ in_array($filterType, ['optional_sets', 'all_products']) ? '7' : '6' }}" class="px-4 py-2 bg-gray-50">
                                     <div class="space-y-2">
-                                        <h4 class="font-medium text-sm text-gray-700 mb-3">Detalles de items individuales:</h4>
+                                        <div class="flex justify-between items-center mb-3">
+                                            <h4 class="font-medium text-sm text-gray-700">Detalles de items individuales:</h4>
+                                            @if(str_starts_with($grouped->avg_supplier_status, 'mixed'))
+                                                <div class="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                                                    <strong>Estado Mixto:</strong> Los items tienen diferentes estados
+                                                </div>
+                                            @endif
+                                        </div>
                                         <div class="grid grid-cols-1 gap-2">
                                             @foreach ($grouped->items as $item)
                                                 <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
@@ -228,7 +327,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="{{ $filterType === 'optional_sets' ? '7' : '6' }}" class="px-4 py-6 text-center text-gray-500">
+                            <td colspan="{{ in_array($filterType, ['optional_sets', 'all_products']) ? '7' : '6' }}" class="px-4 py-6 text-center text-gray-500">
                                 No hay items para agrupar
                             </td>
                         </tr>
