@@ -50,7 +50,6 @@
                             <x-sort-icon field="total" :sortField="$sortField" :sortAsc="$sortAsc" />
                         </div>
                     </th>
-                    <th class="px-2 py-2">Tipo de Pago</th>
                     <th class="px-2 py-2">Descuento</th>
                     <th class="px-2 py-2">Total Final</th>
                     <th class="px-2 py-2">
@@ -97,9 +96,6 @@
                             ${{ number_format($order->total, 2) }}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
-                            {{ ucfirst($order->payment_type ?? '-') }}
-                        </td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">
                             @if($order->discount_amount)
                                 <div>
                                     <div class="text-green-600">-${{ number_format($order->discount_amount, 2) }}</div>
@@ -143,16 +139,7 @@
                      
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
                             <div class="flex flex-col gap-1 text-xs">
-                                @if($order->status !== 'review')
-                                <button 
-                                    class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
-                                    wire:click="changeStatusToReview({{ $order->id_order }})"
-                                    wire:loading.attr="disabled"
-                                    wire:confirm="¿Marcar como 'Revisar'?">
-                                    Revisar
-                                </button>
-                                @endif
-                                
+                              
                                 @if($order->status !== 'paid')
                                 <button 
                                     class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"

@@ -111,65 +111,33 @@
                                     @if (count($receipts) > 0)
                                         <div class="grid gap-4">
                                             @foreach ($receipts as $receipt)
-                                                <div
-                                                    class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                                    <div class="flex justify-between items-start mb-3">
-                                                        <div class="flex-1">
-                                                            <div class="flex items-center gap-2 mb-2">
-                                                                <span class="text-sm font-semibold text-gray-700">Recibo
-                                                                    #{{ $receipt->id_receip }}</span>
-                                                                <span
-                                                                    class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                                                    Pagado
-                                                                </span>
-                                                            </div>
-
-                                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                                                                <div>
-                                                                    <span
-                                                                        class="font-medium text-gray-600">Monto:</span>
-                                                                    <p class="text-lg font-semibold text-green-600">
-                                                                        ${{ number_format($receipt->amount, 2) }}
-                                                                    </p>
-                                                                </div>
-                                                                <div>
-                                                                    <span class="font-medium text-gray-600">ID
-                                                                        Transacción:</span>
-                                                                    <p
-                                                                        class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                                                                        {{ $receipt->id_transaction ?? 'N/A' }}
-                                                                    </p>
-                                                                </div>
-                                                                <div>
-                                                                    <span
-                                                                        class="font-medium text-gray-600">Fecha:</span>
-                                                                    <p>{{ $receipt->created_at->format('d/m/Y H:i') }}
-                                                                    </p>
-                                                                </div>
+                                                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-2">
+                                                        <div class="flex items-center gap-4">
+                                                            @if($receipt->url_img)
+                                                                <img src="{{ $receipt->url_img }}" alt="Comprobante" class="h-16 w-16 object-cover rounded border" onerror="this.style.display='none'">
+                                                            @else
+                                                                <div class="h-16 w-16 flex items-center justify-center bg-gray-100 text-gray-500 border rounded">No aplica</div>
+                                                            @endif
+                                                            <div>
+                                                                <div class="font-semibold text-gray-800">Monto: ${{ number_format($receipt->amount, 2) }}</div>
+                                                                <div class="text-xs text-gray-500">Tipo: {{ \App\Enums\ReceipPaymentType::labels()[$receipt->payment_type->value ?? $receipt->payment_type] ?? '-' }}</div>
+                                                                <div class="text-xs text-gray-500">Estatus: {{ \App\Enums\ReceipStatus::labels()[$receipt->status->value ?? $receipt->status] ?? $receipt->status }}</div>
                                                             </div>
                                                         </div>
-
-                                                        {{-- Imagen del recibo --}}
-                                                        @if ($receipt->url_img)
-                                                            <div class="ml-4">
-                                                                <button class="group relative">
-                                                                    <img src="{{ $receipt->url_img }}"
-                                                                        alt="Recibo #{{ $receipt->id_receip }}"
-                                                                        class="w-16 h-16 object-cover rounded border border-gray-300 hover:scale-110 transition-transform">
-                                                                    <div
-                                                                        class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded transition-all flex items-center justify-center">
-                                                                        <svg class="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                            fill="none" stroke="currentColor"
-                                                                            viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round"
-                                                                                stroke-linejoin="round" stroke-width="2"
-                                                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                                        </svg>
-                                                                    </div>
-                                                                </button>
-                                                            </div>
-                                                        @endif
+                                                        <div class="flex flex-col gap-2 mt-2 md:mt-0">
+                                                            @if($receipt->status->value === 'sent')
+                                                                <button wire:click="approveReceip({{ $receipt->id_receip }})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs">Aprobar</button>
+                                                                <button wire:click="showReviewInput({{ $receipt->id_receip }})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs">Revisar</button>
+                                                            @endif
+                                                        </div>
                                                     </div>
+                                                    @if(isset($reviewInputId) && $reviewInputId == $receipt->id_receip)
+                                                        <div class="mt-2">
+                                                            <input type="text" wire:model.defer="reviewMessage" placeholder="Motivo de revisión..." class="w-full border rounded px-2 py-1 text-xs">
+                                                            <button wire:click="sendToReview({{ $receipt->id_receip }})" class="mt-1 bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded text-xs">Enviar a revisión</button>
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             @endforeach
                                         </div>
@@ -181,8 +149,7 @@
                                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             <h3 class="mt-2 text-sm font-medium text-gray-900">No hay recibos</h3>
-                                            <p class="mt-1 text-sm text-gray-500">Esta orden no tiene recibos asociados.
-                                            </p>
+                                            <p class="mt-1 text-sm text-gray-500">Esta orden no tiene recibos asociados.</p>
                                         </div>
                                     @endif
                                 </div>

@@ -74,15 +74,29 @@ class CashReceipModal extends Component
             );
         }
         $userId = $order?->id_user;
-        Receip::create([
+        $receip = Receip::create([
             'id_order' => $order?->id_order,
             'id_user' => $userId,
             'amount' => $this->amount,
             'url_img' => $url,
-            'status' => 'sent',
+            'status' => \App\Enums\ReceipStatus::APPROVED->value,
             'payment_type' => ReceipPaymentType::CASH->value,
             'id_transaction' => '',
         ]);
+        // Notificar usuario de éxito
+        if ($order && $order->user) {
+            \App\Models\Notification::create([
+                'user_id' => $order->id_user,
+                'type' => \App\Enums\NotificationType::SUCCESS,
+                'title' => 'Abono en efectivo aprobado',
+                'message' => 'Tu abono en efectivo fue registrado y aprobado exitosamente.',
+                'data' => [
+                    'order_id' => $order->id_order,
+                    'receip_id' => $receip->id_receip,
+                    'action' => 'approved',
+                ],
+            ]);
+        }
         // Cambiar status de la orden a 'paying' si existe
         $order->status = \App\Enums\StatusOrder::PAYING->value;
         $order->save();
