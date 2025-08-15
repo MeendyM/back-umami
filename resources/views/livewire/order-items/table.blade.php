@@ -22,7 +22,7 @@
 
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <div class="flex gap-2 items-center">
-            <input type="text" wire:model.debounce.500ms="search" placeholder="Buscar por ID, producto, proveedor o set" class="border rounded px-3 py-2 w-64">
+            <input type="text" wire:model.debounce.500ms="search" placeholder="Buscar por ID, código de orden, producto, proveedor o set" class="border rounded px-3 py-2 w-80">
            
         </div>
         <div class="ml-auto flex gap-2 items-center text-sm text-gray-600">
@@ -215,6 +215,16 @@
                                         @endif
                                     @endif
                                 </div>
+                                @if (isset($grouped->order_codes) && $grouped->order_codes->count() > 0)
+                                    <div class="mt-1 flex flex-wrap gap-1">
+                                        @foreach ($grouped->order_codes as $code)
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $code }}</span>
+                                        @endforeach
+                                        @if ($grouped->items_count > $grouped->order_codes->count())
+                                            <span class="text-xs text-gray-500">+{{ $grouped->items_count - $grouped->order_codes->count() }} más</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-4 py-2">{{ $grouped->supplier_name }}</td>
                             <td class="px-4 py-2">
@@ -332,6 +342,8 @@
                                                     <div class="flex-1">
                                                         <span class="font-medium">ID: {{ $item->id_order_item }}</span>
                                                         <span class="mx-2">|</span>
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $item->order?->order_code ?? '-' }}</span>
+                                                        <span class="mx-2">|</span>
                                                         <span>Cantidad: {{ $item->quantity }}</span>
                                                         @if ($item->id_set)
                                                             <span class="mx-2">|</span>
@@ -384,6 +396,7 @@
             <thead class="bg-gray-100 text-gray-700">
                 <tr>
                     <th class="px-4 py-2 text-left">ID</th>
+                    <th class="px-4 py-2 text-left">Código Orden</th>
                     <th class="px-4 py-2 text-left">Tipo</th>
                     <th class="px-4 py-2 text-left">Detalle</th>
                     <th class="px-4 py-2 text-left">Proveedor</th>
@@ -397,6 +410,11 @@
                 @forelse ($items as $item)
                     <tr>
                         <td class="px-4 py-2">{{ $item->id_order_item }}</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono font-medium">
+                                {{ $item->order?->order_code ?? '-' }}
+                            </span>
+                        </td>
                         <td class="px-4 py-2">
                             @if ($item->type_order?->value === 'set')
                                 @if ($item->set?->only_in_set)
@@ -489,7 +507,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-6 text-center text-gray-500">No hay items</td>
+                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">No hay items</td>
                     </tr>
                 @endforelse
             </tbody>

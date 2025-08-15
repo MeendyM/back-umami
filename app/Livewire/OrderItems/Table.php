@@ -214,6 +214,7 @@ class Table extends Component
                             'items_count' => $items->count(),
                             'items' => $items,
                             'avg_supplier_status' => $this->getAverageStatus($items),
+                            'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
                         ];
                     })
                     ->values();
@@ -236,6 +237,7 @@ class Table extends Component
                             'avg_supplier_status' => $this->getAverageStatus($items),
                             'has_set_items' => $items->whereNotNull('id_set')->count() > 0,
                             'has_individual_items' => $items->whereNull('id_set')->count() > 0,
+                            'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
                         ];
                     })
                     ->values();
@@ -258,6 +260,7 @@ class Table extends Component
                         'items_count' => $items->count(),
                         'items' => $items,
                         'avg_supplier_status' => $this->getAverageStatus($items),
+                        'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
                     ];
                 })
                 ->values();
@@ -281,6 +284,7 @@ class Table extends Component
                         'has_set_items' => $items->whereNotNull('id_set')->count() > 0,
                         'has_individual_items' => $items->whereNull('id_set')->count() > 0,
                         'is_from_optional_sets' => $items->whereNotNull('id_set')->first()?->set?->only_in_set === false,
+                        'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
                     ];
                 })
                 ->values();
@@ -325,7 +329,7 @@ class Table extends Component
     protected function baseQuery()
     {
         $query = OrderItem::query()
-            ->with(['set', 'children', 'product.supplier'])
+            ->with(['set', 'children', 'product.supplier', 'order'])
             ->whereNotNull('id_order'); // solo items con orden confirmada
 
         switch ($this->filterType) {
@@ -403,8 +407,13 @@ class Table extends Component
         if ($this->search !== '') {
             $search = "%{$this->search}%";
             $query->where(function ($q) use ($search) {
-                // Buscar por ID
+                // Buscar por ID del item
                 $q->where('id_order_item', 'like', $search);
+
+                // Buscar por código de orden
+                $q->orWhereHas('order', function ($o) use ($search) {
+                    $o->where('order_code', 'like', $search);
+                });
 
                 // Buscar por producto y proveedor (solo si no estamos filtrando solo sets)
                 if ($this->filterType !== 'mandatory_sets') {
