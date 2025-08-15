@@ -20,8 +20,9 @@ class Table extends Component
     public string $filterType = 'mandatory_sets'; // mandatory_sets | optional_sets | individual_products | all_products | all
     public bool $showGrouped = false; // Nueva propiedad para mostrar vista agrupada
     public array $expandedGroups = []; // Para controlar qué grupos están expandidos
+    public string $optionalSetsFilter = 'both'; // both | sets_only | products_only
 
-    protected $queryString = ['search', 'filterType', 'showGrouped'];
+    protected $queryString = ['search', 'filterType', 'showGrouped', 'optionalSetsFilter'];
 
     public function updatingSearch(): void
     {
@@ -34,6 +35,11 @@ class Table extends Component
     }
 
     public function updatingShowGrouped(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingOptionalSetsFilter(): void
     {
         $this->resetPage();
     }
@@ -192,27 +198,48 @@ class Table extends Component
                 ->values();
                 
         } elseif ($this->filterType === 'optional_sets') {
-            // Para sets opcionales, agrupar SOLO los productos por id_product
-            // No importa si vienen de set o no, se agrupan por producto
-            return $query->where('type_order', OrderItemType::PRODUCT)
-                ->get()
-                ->groupBy('id_product')
-                ->map(function ($items, $productId) {
-                    $firstItem = $items->first();
-                    return (object) [
-                        'type' => 'grouped_product',
-                        'id_product' => $productId,
-                        'product_name' => $firstItem->product?->name ?? '-',
-                        'supplier_name' => $firstItem->product?->supplier?->name ?? '-',
-                        'total_quantity' => $items->sum('quantity'),
-                        'items_count' => $items->count(),
-                        'items' => $items,
-                        'avg_supplier_status' => $this->getAverageStatus($items),
-                        'has_set_items' => $items->whereNotNull('id_set')->count() > 0,
-                        'has_individual_items' => $items->whereNull('id_set')->count() > 0,
-                    ];
-                })
-                ->values();
+            // Para sets opcionales, agrupar según el filtro seleccionado
+            if ($this->optionalSetsFilter === 'sets_only') {
+                // Solo sets: agrupar por id_set
+                return $query->get()
+                    ->groupBy('id_set')
+                    ->map(function ($items, $setId) {
+                        $firstItem = $items->first();
+                        return (object) [
+                            'type' => 'grouped_set',
+                            'id_set' => $setId,
+                            'set_name' => $firstItem->set?->name ?? '-',
+                            'supplier_name' => $firstItem->set?->supplier?->name ?? '-',
+                            'total_quantity' => $items->sum('quantity'),
+                            'items_count' => $items->count(),
+                            'items' => $items,
+                            'avg_supplier_status' => $this->getAverageStatus($items),
+                        ];
+                    })
+                    ->values();
+            } else {
+                // Para products_only o both, agrupar SOLO los productos por id_product
+                // No importa si vienen de set o no, se agrupan por producto
+                return $query->where('type_order', OrderItemType::PRODUCT)
+                    ->get()
+                    ->groupBy('id_product')
+                    ->map(function ($items, $productId) {
+                        $firstItem = $items->first();
+                        return (object) [
+                            'type' => 'grouped_product',
+                            'id_product' => $productId,
+                            'product_name' => $firstItem->product?->name ?? '-',
+                            'supplier_name' => $firstItem->product?->supplier?->name ?? '-',
+                            'total_quantity' => $items->sum('quantity'),
+                            'items_count' => $items->count(),
+                            'items' => $items,
+                            'avg_supplier_status' => $this->getAverageStatus($items),
+                            'has_set_items' => $items->whereNotNull('id_set')->count() > 0,
+                            'has_individual_items' => $items->whereNull('id_set')->count() > 0,
+                        ];
+                    })
+                    ->values();
+            }
                 
         } elseif ($this->filterType === 'individual_products') {
             // Para productos individuales, agrupar por id_product
@@ -314,19 +341,35 @@ class Table extends Component
                 // Sets opcionales: items de tipo set donde el set tiene only_in_set = false
                 // Y también sus productos relacionados
                 $query->where(function ($q) {
-                    // Items de set opcionales
-                    $q->where('type_order', OrderItemType::SET)
-                      ->whereHas('set', function ($setQuery) {
-                          $setQuery->where('only_in_set', false);
-                      });
-                    // O productos que pertenecen a sets opcionales
-                    $q->orWhere(function ($productQuery) {
-                        $productQuery->where('type_order', OrderItemType::PRODUCT)
-                                   ->whereNotNull('id_set')
-                                   ->whereHas('set', function ($setQuery) {
-                                       $setQuery->where('only_in_set', false);
-                                   });
-                    });
+                    if ($this->optionalSetsFilter === 'sets_only') {
+                        // Solo mostrar los sets, no los productos
+                        $q->where('type_order', OrderItemType::SET)
+                          ->whereHas('set', function ($setQuery) {
+                              $setQuery->where('only_in_set', false);
+                          });
+                    } elseif ($this->optionalSetsFilter === 'products_only') {
+                        // Solo mostrar los productos de sets opcionales
+                        $q->where('type_order', OrderItemType::PRODUCT)
+                          ->whereNotNull('id_set')
+                          ->whereHas('set', function ($setQuery) {
+                              $setQuery->where('only_in_set', false);
+                          });
+                    } else {
+                        // Mostrar ambos (comportamiento actual)
+                        // Items de set opcionales
+                        $q->where('type_order', OrderItemType::SET)
+                          ->whereHas('set', function ($setQuery) {
+                              $setQuery->where('only_in_set', false);
+                          });
+                        // O productos que pertenecen a sets opcionales
+                        $q->orWhere(function ($productQuery) {
+                            $productQuery->where('type_order', OrderItemType::PRODUCT)
+                                       ->whereNotNull('id_set')
+                                       ->whereHas('set', function ($setQuery) {
+                                           $setQuery->where('only_in_set', false);
+                                       });
+                        });
+                    }
                 });
                 break;
                 
@@ -445,32 +488,71 @@ class Table extends Component
                 break;
                 
             case 'optional_sets':
-                // Contar sets opcionales y productos relacionados
-                $stats['total_sets'] = OrderItem::whereNotNull('id_order')
-                    ->where('type_order', OrderItemType::SET)
-                    ->whereHas('set', function ($q) {
-                        $q->where('only_in_set', false);
-                    })
-                    ->count();
-                    
-                $stats['total_products'] = OrderItem::whereNotNull('id_order')
-                    ->where('type_order', OrderItemType::PRODUCT)
-                    ->whereNotNull('id_set')
-                    ->whereHas('set', function ($q) {
-                        $q->where('only_in_set', false);
-                    })
-                    ->sum('quantity');
-                    
-                // Si está agrupado, mostrar productos únicos
-                if ($this->showGrouped) {
-                    $stats['unique_products'] = OrderItem::whereNotNull('id_order')
+                // Contar sets opcionales y productos relacionados según el filtro
+                if ($this->optionalSetsFilter === 'sets_only') {
+                    $stats['total_sets'] = OrderItem::whereNotNull('id_order')
+                        ->where('type_order', OrderItemType::SET)
+                        ->whereHas('set', function ($q) {
+                            $q->where('only_in_set', false);
+                        })
+                        ->count();
+                        
+                    if ($this->showGrouped) {
+                        $stats['unique_sets'] = OrderItem::whereNotNull('id_order')
+                            ->where('type_order', OrderItemType::SET)
+                            ->whereHas('set', function ($q) {
+                                $q->where('only_in_set', false);
+                            })
+                            ->distinct('id_set')
+                            ->count();
+                    }
+                } elseif ($this->optionalSetsFilter === 'products_only') {
+                    $stats['total_products'] = OrderItem::whereNotNull('id_order')
                         ->where('type_order', OrderItemType::PRODUCT)
                         ->whereNotNull('id_set')
                         ->whereHas('set', function ($q) {
                             $q->where('only_in_set', false);
                         })
-                        ->distinct('id_product')
+                        ->sum('quantity');
+                        
+                    if ($this->showGrouped) {
+                        $stats['unique_products'] = OrderItem::whereNotNull('id_order')
+                            ->where('type_order', OrderItemType::PRODUCT)
+                            ->whereNotNull('id_set')
+                            ->whereHas('set', function ($q) {
+                                $q->where('only_in_set', false);
+                            })
+                            ->distinct('id_product')
+                            ->count();
+                    }
+                } else {
+                    // Ambos (comportamiento actual)
+                    $stats['total_sets'] = OrderItem::whereNotNull('id_order')
+                        ->where('type_order', OrderItemType::SET)
+                        ->whereHas('set', function ($q) {
+                            $q->where('only_in_set', false);
+                        })
                         ->count();
+                        
+                    $stats['total_products'] = OrderItem::whereNotNull('id_order')
+                        ->where('type_order', OrderItemType::PRODUCT)
+                        ->whereNotNull('id_set')
+                        ->whereHas('set', function ($q) {
+                            $q->where('only_in_set', false);
+                        })
+                        ->sum('quantity');
+                        
+                    // Si está agrupado, mostrar productos únicos
+                    if ($this->showGrouped) {
+                        $stats['unique_products'] = OrderItem::whereNotNull('id_order')
+                            ->where('type_order', OrderItemType::PRODUCT)
+                            ->whereNotNull('id_set')
+                            ->whereHas('set', function ($q) {
+                                $q->where('only_in_set', false);
+                            })
+                            ->distinct('id_product')
+                            ->count();
+                    }
                 }
                 break;
                 

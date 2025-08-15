@@ -34,6 +34,18 @@
                 </label>
             @endif
             
+            {{-- Filtro específico para sets opcionales --}}
+            @if ($filterType === 'optional_sets')
+                <div class="flex items-center gap-2 mr-4 p-2 bg-indigo-50 rounded border border-indigo-200">
+                    <span class="text-xs text-indigo-700 font-medium">Mostrar:</span>
+                    <select wire:model="optionalSetsFilter" class="border rounded px-2 py-1 text-xs bg-white">
+                        <option value="both">Sets y Productos</option>
+                        <option value="sets_only">Solo Sets</option>
+                        <option value="products_only">Solo Productos</option>
+                    </select>
+                </div>
+            @endif
+            
             <span>Ordenar por:</span>
             <select wire:change="sortBy($event.target.value)" class="border rounded px-2 py-1">
                 <option value="id_order_item">ID</option>
@@ -77,14 +89,38 @@
                         <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets que deben pedirse completos
                     @endif
                 @elseif ($filterType === 'optional_sets')
-                    <div class="font-medium mb-1">Sets Opcionales</div>
+                    <div class="font-medium mb-1">Sets Opcionales
+                        @if ($optionalSetsFilter === 'sets_only')
+                            <span class="text-xs font-normal">(Solo Sets)</span>
+                        @elseif ($optionalSetsFilter === 'products_only')
+                            <span class="text-xs font-normal">(Solo Productos)</span>
+                        @else
+                            <span class="text-xs font-normal">(Sets y Productos)</span>
+                        @endif
+                    </div>
                     <div class="mb-2 text-blue-600">Sets donde los productos se pueden pedir por separado</div>
-                    @if ($showGrouped && isset($stats['unique_products']))
-                        <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
-                        <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales, 
-                        <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets
+                    @if ($optionalSetsFilter === 'sets_only')
+                        @if ($showGrouped && isset($stats['unique_sets']))
+                            <strong>{{ $stats['unique_sets'] }}</strong> tipos de sets diferentes, 
+                            <strong>{{ $stats['total_sets'] }}</strong> items totales
+                        @else
+                            <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets opcionales
+                        @endif
+                    @elseif ($optionalSetsFilter === 'products_only')
+                        @if ($showGrouped && isset($stats['unique_products']))
+                            <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
+                            <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales
+                        @else
+                            <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos de sets opcionales
+                        @endif
                     @else
-                        <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets, <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos relacionados
+                        @if ($showGrouped && isset($stats['unique_products']))
+                            <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
+                            <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales, 
+                            <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets
+                        @else
+                            <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets, <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos relacionados
+                        @endif
                     @endif
                 @elseif ($filterType === 'individual_products')
                     <div class="font-medium mb-1">Productos Individuales</div>
@@ -124,6 +160,8 @@
                         <th class="px-4 py-2 text-left">
                             @if ($filterType === 'mandatory_sets')
                                 Set
+                            @elseif ($filterType === 'optional_sets' && $optionalSetsFilter === 'sets_only')
+                                Set
                             @else
                                 Producto
                             @endif
@@ -132,7 +170,7 @@
                         <th class="px-4 py-2 text-left">Cantidad Total</th>
                         <th class="px-4 py-2 text-left">Items Agrupados</th>
                         <th class="px-4 py-2 text-left">Estado General</th>
-                        @if ($filterType === 'optional_sets')
+                        @if ($filterType === 'optional_sets' && $optionalSetsFilter === 'both')
                             <th class="px-4 py-2 text-left">Origen</th>
                         @elseif ($filterType === 'all_products')
                             <th class="px-4 py-2 text-left">Origen</th>
@@ -151,12 +189,18 @@
                                     @else
                                         {{ $grouped->product_name }}
                                         @if ($filterType === 'optional_sets')
-                                            @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 ml-2">Set + Individual</span>
-                                            @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
+                                            @if ($optionalSetsFilter === 'sets_only')
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700 ml-2">Set Opcional</span>
+                                            @elseif ($optionalSetsFilter === 'products_only')
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 ml-2">De Set</span>
                                             @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
+                                                @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 ml-2">Set + Individual</span>
+                                                @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 ml-2">De Set</span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
+                                                @endif
                                             @endif
                                         @elseif ($filterType === 'all_products')
                                             @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
@@ -199,7 +243,7 @@
                                     @endif
                                 </span>
                             </td>
-                            @if ($filterType === 'optional_sets')
+                            @if ($filterType === 'optional_sets' && $optionalSetsFilter === 'both')
                                 <td class="px-4 py-2">
                                     @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
                                         <span class="text-sm text-purple-600 font-medium">Mixto</span>
@@ -272,7 +316,7 @@
                         {{-- Fila expandible con detalles --}}
                         @if (in_array($loop->index, $expandedGroups))
                             <tr>
-                                <td colspan="{{ in_array($filterType, ['optional_sets', 'all_products']) ? '7' : '6' }}" class="px-4 py-2 bg-gray-50">
+                                <td colspan="@if($filterType === 'optional_sets' && $optionalSetsFilter === 'both') 7 @elseif($filterType === 'all_products') 7 @else 6 @endif" class="px-4 py-2 bg-gray-50">
                                     <div class="space-y-2">
                                         <div class="flex justify-between items-center mb-3">
                                             <h4 class="font-medium text-sm text-gray-700">Detalles de items individuales:</h4>
@@ -327,7 +371,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="{{ in_array($filterType, ['optional_sets', 'all_products']) ? '7' : '6' }}" class="px-4 py-6 text-center text-gray-500">
+                            <td colspan="@if($filterType === 'optional_sets' && $optionalSetsFilter === 'both') 7 @elseif($filterType === 'all_products') 7 @else 6 @endif" class="px-4 py-6 text-center text-gray-500">
                                 No hay items para agrupar
                             </td>
                         </tr>
