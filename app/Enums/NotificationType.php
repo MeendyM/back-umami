@@ -8,6 +8,7 @@ enum NotificationType: string
     case ERROR = 'error';
     case WARNING = 'warning';
     case INFO = 'info';
+    case ADMIN = 'admin';
 
     public static function labels(): array
     {
@@ -16,6 +17,7 @@ enum NotificationType: string
             self::ERROR->value => 'Error',
             self::WARNING->value => 'Advertencia',
             self::INFO->value => 'Información',
+            self::ADMIN->value => 'Administrador',
         ];
     }
 }

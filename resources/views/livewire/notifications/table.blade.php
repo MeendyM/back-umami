@@ -3,6 +3,15 @@
         <x-search class="focus:border-indigo-400 focus:ring-indigo-400">
             Buscar...
         </x-search>
+        <div class="flex gap-2">
+            <livewire:notifications.create key="notifications.create" />
+            <select wire:model="filterType" class="border rounded px-2 py-1 text-sm">
+                <option value="">Todos los tipos</option>
+                @foreach (App\Enums\NotificationType::labels() as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     <div class="px-4 py-4 bg-white custom-box-shadow rounded-t-[16px]">
