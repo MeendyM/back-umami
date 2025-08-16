@@ -151,30 +151,22 @@
                      
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
                             <div class="flex flex-col gap-1 text-xs">
-                              
                                 @if($order->status !== 'paid')
-                                <button 
-                                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
-                                    wire:click="changeStatusToPaid({{ $order->id_order }})"
-                                    wire:loading.attr="disabled"
-                                    wire:confirm="¿Marcar como 'Pagado'?">
-                                    Pagado
-                                </button>
+                                    <button 
+                                        class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
+                                        wire:click="changeStatusToPaid({{ $order->id_order }})"
+                                        wire:loading.attr="disabled"
+                                        wire:confirm="¿Marcar como 'Pagado'?">
+                                        Pagado
+                                    </button>
+                                @endif
+
                                 @if ($order->status !== 'review')
                                     <button
                                         class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
                                         wire:click="changeStatusToReview({{ $order->id_order }})"
                                         wire:loading.attr="disabled" wire:confirm="¿Marcar como 'Revisar'?">
                                         Revisar
-                                    </button>
-                                @endif
-
-                                @if ($order->status !== 'paid')
-                                    <button
-                                        class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
-                                        wire:click="changeStatusToPaid({{ $order->id_order }})"
-                                        wire:loading.attr="disabled" wire:confirm="¿Marcar como 'Pagado'?">
-                                        Pagado
                                     </button>
                                 @endif
 

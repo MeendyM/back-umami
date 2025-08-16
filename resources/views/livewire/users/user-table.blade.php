@@ -83,12 +83,12 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                @if($user->type === 'admin') bg-purple-100 text-purple-800
-                                @elseif($user->type === 'student') bg-blue-100 text-blue-800
-                                @elseif($user->type === 'teacher') bg-green-100 text-green-800
+                                @if($user->type->value === 'admin') bg-purple-100 text-purple-800
+                                @elseif($user->type->value === 'student') bg-blue-100 text-blue-800
+                                @elseif($user->type->value === 'client') bg-green-100 text-green-800
                                 @else bg-gray-100 text-gray-800
                                 @endif">
-                                {{ ucfirst($user->type) }}
+                                {{ \App\Enums\TypeUser::labels()[$user->type->value] ?? $user->type->value }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
