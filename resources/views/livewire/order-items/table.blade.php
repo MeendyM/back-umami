@@ -34,6 +34,29 @@
                 </label>
             @endif
             
+            {{-- Toggle para mostrar customs --}}
+            <label class="flex items-center gap-2 mr-4 p-2 bg-green-50 rounded border border-green-200">
+                <input type="checkbox" wire:model="showCustoms" class="rounded">
+                <span class="text-sm text-green-700 font-medium">Mostrar Customs</span>
+            </label>
+            
+            {{-- Nuevo: Mostrar solo customs de items NO pedidos --}}
+            <label class="flex items-center gap-2 mr-4 p-2 bg-yellow-50 rounded border border-yellow-200">
+                <input type="checkbox" wire:model="customsOnlyNotOrdered" class="rounded">
+                <span class="text-sm text-yellow-700 font-medium">Solo NO pedidos</span>
+            </label>
+            
+            {{-- Botón para generar reporte de customs --}}
+            <button wire:click="generateCustomsReport" class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm mr-4">
+                Reporte Customs
+            </button>
+            {{-- Nuevo: Cerrar reporte --}}
+            @if ($customsReport)
+                <button wire:click="closeCustomsReport" class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-sm mr-4">
+                    Cerrar Reporte
+                </button>
+            @endif
+            
             {{-- Filtro específico para sets opcionales --}}
             @if ($filterType === 'optional_sets')
                 <div class="flex items-center gap-2 mr-4 p-2 bg-indigo-50 rounded border border-indigo-200">
@@ -72,6 +95,46 @@
     @if (session('error'))
         <div class="mb-4 p-3 bg-red-50 rounded border border-red-200">
             <div class="text-sm text-red-700">{{ session('error') }}</div>
+        </div>
+    @endif
+
+    {{-- Reporte de Customs --}}
+    @if ($customsReport)
+        <div class="mb-4 p-4 bg-green-50 rounded border border-green-200">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-medium text-green-700">Reporte de Personalizaciones para Proveedor</h3>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm">
+                        Imprimir
+                    </button>
+                    <button wire:click="closeCustomsReport" class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-sm">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+            <div class="space-y-4">
+                @foreach ($customsReport as $productData)
+                    <div class="bg-white p-3 rounded border">
+                        <div class="font-medium text-gray-800 mb-2">
+                            {{ $productData['product_name'] }}
+                            <span class="text-sm text-gray-500 ml-2">({{ $productData['supplier'] }})</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
+                                {{ $productData['total_customs'] }} personalizaciones
+                            </span>
+                        </div>
+                        <div class="space-y-1">
+                            @foreach ($productData['customs'] as $custom)
+                                <div class="text-sm border-l-2 border-green-200 pl-3">
+                                    <span class="font-mono bg-blue-100 text-blue-700 px-1 py-0.5 rounded text-xs">{{ $custom['order_code'] }}</span>
+                                    <span class="mx-2">→</span>
+                                    <span class="font-medium">{{ $custom['text'] }}</span>
+                                    <span class="text-gray-500 ml-2">(Cantidad: {{ $custom['quantity'] }})</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
     @endif
 
@@ -225,6 +288,24 @@
                                         @endif
                                     </div>
                                 @endif
+                                @if ($showCustoms && isset($grouped->customs_info) && $grouped->customs_info && $grouped->customs_info['has_customs'])
+                                    <div class="mt-2 p-2 bg-green-50 rounded border border-green-200">
+                                        <div class="text-xs font-medium text-green-700 mb-1">
+                                            {{ $grouped->customs_info['customs_count'] }} personalizaciones
+                                        </div>
+                                        <div class="space-y-1">
+                                            @foreach ($grouped->customs_info['customs_list'] as $custom)
+                                                <div class="text-xs text-green-600">
+                                                    <span class="font-mono bg-white px-1 py-0.5 rounded">{{ $custom['order_code'] }}</span>
+                                                    <span class="mx-1">|</span>
+                                                    <span>{{ $custom['text'] }}</span>
+                                                    <span class="mx-1">|</span>
+                                                    <span class="text-gray-500">Cant: {{ $custom['quantity'] }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-4 py-2">{{ $grouped->supplier_name }}</td>
                             <td class="px-4 py-2">
@@ -232,6 +313,11 @@
                             </td>
                             <td class="px-4 py-2">
                                 <span class="text-sm text-gray-600">{{ $grouped->items_count }} items</span>
+                                @if (isset($grouped->customs_info) && $grouped->customs_info && $grouped->customs_info['has_customs'])
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
+                                        {{ $grouped->customs_info['customs_count'] }} customs
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-4 py-2">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
@@ -329,7 +415,13 @@
                                 <td colspan="@if($filterType === 'optional_sets' && $optionalSetsFilter === 'both') 7 @elseif($filterType === 'all_products') 7 @else 6 @endif" class="px-4 py-2 bg-gray-50">
                                     <div class="space-y-2">
                                         <div class="flex justify-between items-center mb-3">
-                                            <h4 class="font-medium text-sm text-gray-700">Detalles de items individuales:</h4>
+                                            <h4 class="font-medium text-sm text-gray-700">
+                                                @if ($grouped->type === 'grouped_set')
+                                                    Productos del set:
+                                                @else
+                                                    Detalles de items individuales:
+                                                @endif
+                                            </h4>
                                             @if(str_starts_with($grouped->avg_supplier_status, 'mixed'))
                                                 <div class="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
                                                     <strong>Estado Mixto:</strong> Los items tienen diferentes estados
@@ -337,45 +429,128 @@
                                             @endif
                                         </div>
                                         <div class="grid grid-cols-1 gap-2">
-                                            @foreach ($grouped->items as $item)
-                                                <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
-                                                    <div class="flex-1">
-                                                        <span class="font-medium">ID: {{ $item->id_order_item }}</span>
-                                                        <span class="mx-2">|</span>
-                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $item->order?->order_code ?? '-' }}</span>
-                                                        <span class="mx-2">|</span>
-                                                        <span>Cantidad: {{ $item->quantity }}</span>
-                                                        @if ($item->id_set)
+                                            @if ($grouped->type === 'grouped_set')
+                                                {{-- Para sets obligatorios, mostrar los productos del set --}}
+                                                @foreach ($grouped->items as $setItem)
+                                                    @php
+                                                        // Para sets obligatorios, buscar productos por id_set directamente
+                                                        $setProducts = \App\Models\OrderItem::where('id_set', $setItem->id_set)
+                                                            ->where('type_order', \App\Enums\OrderItemType::PRODUCT)
+                                                            ->where('id_order', $setItem->id_order)
+                                                            ->with(['product.supplier', 'order'])
+                                                            ->get();
+                                                    @endphp
+                                                    
+                                                    @if ($setProducts->count() > 0)
+                                                        @foreach ($setProducts as $childProduct)
+                                                            <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
+                                                                <div class="flex-1">
+                                                                    <span class="font-medium">Producto: {{ $childProduct->product?->name ?? 'Producto desconocido' }}</span>
+                                                                    <span class="mx-2">|</span>
+                                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $setItem->order?->order_code ?? '-' }}</span>
+                                                                    <span class="mx-2">|</span>
+                                                                    <span>Cantidad: {{ $childProduct->quantity }}</span>
+                                                                    <span class="mx-2">|</span>
+                                                                    <span class="text-red-600">Del set: {{ $setItem->set?->name }}</span>
+                                                                    @if ($childProduct->supplier_order_date)
+                                                                        <span class="mx-2">|</span>
+                                                                        <span>Fecha: {{ $childProduct->supplier_order_date->format('Y-m-d') }}</span>
+                                                                    @endif
+                                                                    
+                                                                    @if ($showCustoms && $childProduct->is_customized && $childProduct->custom_text && is_array($childProduct->custom_text))
+                                                                        <div class="mt-1 flex flex-wrap gap-1">
+                                                                            @foreach ($childProduct->custom_text as $custom)
+                                                                                @if (!empty(trim($custom)))
+                                                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">{{ trim($custom) }}</span>
+                                                                                @endif
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                                                                        @if($childProduct->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
+                                                                        @elseif($childProduct->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
+                                                                        @elseif($childProduct->supplier_status?->value === 'delivered') bg-green-100 text-green-700
+                                                                        @endif">
+                                                                        {{ App\Enums\SupplierOrderStatus::labels()[$childProduct->supplier_status?->value ?? 'not_ordered'] }}
+                                                                    </span>
+                                                                    
+                                                                    @if($childProduct->supplier_status?->value === 'not_ordered')
+                                                                        <button wire:click="markAsOrdered({{ $childProduct->id_order_item }})" class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Pedir</button>
+                                                                    @elseif($childProduct->supplier_status?->value === 'ordered')
+                                                                        <button wire:click="markAsDelivered({{ $childProduct->id_order_item }})" class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Entregado</button>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
+                                                        {{-- Fallback: mostrar el set sin productos --}}
+                                                        <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
+                                                            <div class="flex-1">
+                                                                <span class="font-medium">Set ID: {{ $setItem->id_order_item }}</span>
+                                                                <span class="mx-2">|</span>
+                                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $setItem->order?->order_code ?? '-' }}</span>
+                                                                <span class="mx-2">|</span>
+                                                                <span>Cantidad: {{ $setItem->quantity }}</span>
+                                                                <span class="mx-2">|</span>
+                                                                <span class="text-red-600">Set sin productos</span>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            @else
+                                                {{-- Para productos agrupados, mostrar los items individuales --}}
+                                                @foreach ($grouped->items as $item)
+                                                    <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
+                                                        <div class="flex-1">
+                                                            <span class="font-medium">ID: {{ $item->id_order_item }}</span>
                                                             <span class="mx-2">|</span>
-                                                            <span class="text-yellow-600">Set: {{ $item->set?->name }}</span>
-                                                        @else
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $item->order?->order_code ?? '-' }}</span>
                                                             <span class="mx-2">|</span>
-                                                            <span class="text-green-600">Individual</span>
-                                                        @endif
-                                                        @if ($item->supplier_order_date)
-                                                            <span class="mx-2">|</span>
-                                                            <span>Fecha: {{ $item->supplier_order_date->format('Y-m-d') }}</span>
-                                                        @endif
-                                                    </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
-                                                            @if($item->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
-                                                            @elseif($item->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
-                                                            @elseif($item->supplier_status?->value === 'delivered') bg-green-100 text-green-700
-                                                            @endif">
-                                                            {{ App\Enums\SupplierOrderStatus::labels()[$item->supplier_status?->value ?? 'not_ordered'] }}
-                                                        </span>
-                                                        
-                                                        @if ($item->type_order?->value === 'product')
-                                                            @if($item->supplier_status?->value === 'not_ordered')
-                                                                <button wire:click="markAsOrdered({{ $item->id_order_item }})" class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Pedir</button>
-                                                            @elseif($item->supplier_status?->value === 'ordered')
-                                                                <button wire:click="markAsDelivered({{ $item->id_order_item }})" class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Entregado</button>
+                                                            <span>Cantidad: {{ $item->quantity }}</span>
+                                                            @if ($item->id_set)
+                                                                <span class="mx-2">|</span>
+                                                                <span class="text-yellow-600">Set: {{ $item->set?->name }}</span>
+                                                            @else
+                                                                <span class="mx-2">|</span>
+                                                                <span class="text-green-600">Individual</span>
                                                             @endif
-                                                        @endif
+                                                            @if ($item->supplier_order_date)
+                                                                <span class="mx-2">|</span>
+                                                                <span>Fecha: {{ $item->supplier_order_date->format('Y-m-d') }}</span>
+                                                            @endif
+                                                            
+                                                            @if ($showCustoms && $item->is_customized && $item->custom_text && is_array($item->custom_text))
+                                                                <div class="mt-1 flex flex-wrap gap-1">
+                                                                    @foreach ($item->custom_text as $custom)
+                                                                        @if (!empty(trim($custom)))
+                                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">{{ trim($custom) }}</span>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                                                                @if($item->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
+                                                                @elseif($item->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
+                                                                @elseif($item->supplier_status?->value === 'delivered') bg-green-100 text-green-700
+                                                                @endif">
+                                                                {{ App\Enums\SupplierOrderStatus::labels()[$item->supplier_status?->value ?? 'not_ordered'] }}
+                                                            </span>
+                                                            
+                                                            @if ($item->type_order?->value === 'product')
+                                                                @if($item->supplier_status?->value === 'not_ordered')
+                                                                    <button wire:click="markAsOrdered({{ $item->id_order_item }})" class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Pedir</button>
+                                                                @elseif($item->supplier_status?->value === 'ordered')
+                                                                    <button wire:click="markAsDelivered({{ $item->id_order_item }})" class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Entregado</button>
+                                                                @endif
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            @endforeach
+                                                @endforeach
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
@@ -450,6 +625,16 @@
                                     @else
                                         <div class="text-xs text-gray-500">Producto individual</div>
                                     @endif
+                                    @if ($showCustoms && $item->is_customized && $item->custom_text && is_array($item->custom_text))
+                                        <div class="mt-1 p-1 bg-green-50 rounded border border-green-200">
+                                            <div class="text-xs font-medium text-green-700 mb-1">Personalizaciones:</div>
+                                            @foreach ($item->custom_text as $custom)
+                                                @if (!empty(trim($custom)))
+                                                    <div class="text-xs text-green-600">• {{ trim($custom) }}</div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
                         </td>
@@ -460,7 +645,14 @@
                                 {{ $item->product?->supplier?->name ?? '-' }}
                             @endif
                         </td>
-                        <td class="px-4 py-2">{{ $item->quantity }}</td>
+                        <td class="px-4 py-2">
+                            {{ $item->quantity }}
+                            @if ($item->is_customized && $item->custom_text && is_array($item->custom_text) && count(array_filter($item->custom_text, 'trim')) > 0)
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
+                                    Personalizado
+                                </span>
+                            @endif
+                        </td>
                         <td class="px-4 py-2">
                             @if ($item->type_order?->value === 'product')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 

@@ -21,27 +21,51 @@ class Table extends Component
     public bool $showGrouped = false; // Nueva propiedad para mostrar vista agrupada
     public array $expandedGroups = []; // Para controlar qué grupos están expandidos
     public string $optionalSetsFilter = 'both'; // both | sets_only | products_only
+    public bool $showCustoms = false; // Para mostrar los customs de productos personalizables
+    public bool $customsOnlyNotOrdered = false; // Mostrar solo customs de items no pedidos
 
-    protected $queryString = ['search', 'filterType', 'showGrouped', 'optionalSetsFilter'];
+    protected $queryString = ['search', 'filterType', 'showGrouped', 'optionalSetsFilter', 'showCustoms', 'customsOnlyNotOrdered'];
 
     public function updatingSearch(): void
     {
         $this->resetPage();
+        session()->forget('customs_report');
     }
 
     public function updatingFilterType(): void
     {
         $this->resetPage();
+        session()->forget('customs_report');
     }
 
     public function updatingShowGrouped(): void
     {
         $this->resetPage();
+        session()->forget('customs_report');
     }
 
     public function updatingOptionalSetsFilter(): void
     {
         $this->resetPage();
+        session()->forget('customs_report');
+    }
+
+    public function updatingShowCustoms(): void
+    {
+        $this->resetPage();
+        session()->forget('customs_report');
+    }
+
+    public function updatingCustomsOnlyNotOrdered(): void
+    {
+        $this->resetPage();
+        session()->forget('customs_report');
+    }
+
+    public function closeCustomsReport(): void
+    {
+        session()->forget('customs_report');
+        session()->flash('message', 'Reporte de customs cerrado.');
     }
 
     public function sortBy(string $field): void
@@ -83,15 +107,59 @@ class Table extends Component
         if (!$item || $item->type_order !== OrderItemType::SET || !$item->set?->only_in_set) {
             return;
         }
-        
-        // Marcar el set como pedido (esto podría ser un campo adicional en el futuro)
-        // Por ahora, marcamos todos los productos hijos como pedidos
-        $item->children()->update([
-            'supplier_status' => SupplierOrderStatus::ORDERED,
-            'supplier_order_date' => now()
-        ]);
-        
-        session()->flash('message', 'Set completo marcado como pedido al proveedor.');
+        // Marcar productos de la misma orden
+        OrderItem::where('id_order', $item->id_order)
+            ->where('type_order', OrderItemType::PRODUCT)
+            ->update([
+                'supplier_status' => SupplierOrderStatus::ORDERED,
+                'supplier_order_date' => now(),
+            ]);
+        // Marcar también el item SET
+        $item->supplier_status = SupplierOrderStatus::ORDERED;
+        $item->supplier_order_date = now();
+        $item->save();
+
+        session()->flash('message', 'Orden completa marcada como PEDIDA (incluye el set).');
+    }
+
+    public function markSetAsDelivered(int $id): void
+    {
+        $item = OrderItem::find($id);
+        if (!$item || $item->type_order !== OrderItemType::SET || !$item->set?->only_in_set) {
+            return;
+        }
+        // Marcar productos de la misma orden
+        OrderItem::where('id_order', $item->id_order)
+            ->where('type_order', OrderItemType::PRODUCT)
+            ->update([
+                'supplier_status' => SupplierOrderStatus::DELIVERED,
+            ]);
+        // Marcar también el item SET
+        $item->supplier_status = SupplierOrderStatus::DELIVERED;
+        $item->save();
+
+        session()->flash('message', 'Orden completa marcada como ENTREGADA (incluye el set).');
+    }
+
+    public function markSetAsNotOrdered(int $id): void
+    {
+        $item = OrderItem::find($id);
+        if (!$item || $item->type_order !== OrderItemType::SET || !$item->set?->only_in_set) {
+            return;
+        }
+        // Reset productos de la misma orden
+        OrderItem::where('id_order', $item->id_order)
+            ->where('type_order', OrderItemType::PRODUCT)
+            ->update([
+                'supplier_status' => SupplierOrderStatus::NOT_ORDERED,
+                'supplier_order_date' => null,
+            ]);
+        // Reset también el item SET
+        $item->supplier_status = SupplierOrderStatus::NOT_ORDERED;
+        $item->supplier_order_date = null;
+        $item->save();
+
+        session()->flash('message', 'Orden completa RESETEADA (incluye el set).');
     }
 
     public function toggleGroupedDetails(int $index): void
@@ -103,19 +171,124 @@ class Table extends Component
         }
     }
 
+    public function generateCustomsReport(): void
+    {
+        $query = $this->baseQuery();
+        $items = $query->get();
+
+        if ($items->isEmpty()) {
+            session()->flash('message', 'No hay items en el filtro actual.');
+            return;
+        }
+
+        $report = [];
+        
+        foreach ($items as $item) {
+            // Sets obligatorios: buscar productos por id_set + id_order
+            if ($item->type_order === OrderItemType::SET) {
+                $setProducts = OrderItem::where('id_set', $item->id_set)
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->where('id_order', $item->id_order)
+                    ->with(['product.supplier'])
+                    ->get();
+
+                foreach ($setProducts as $child) {
+                    // Filtrar por estado si corresponde
+                    if ($this->customsOnlyNotOrdered && ($child->supplier_status?->value !== SupplierOrderStatus::NOT_ORDERED->value)) {
+                        continue;
+                    }
+                    if ($child->is_customized && $child->custom_text && is_array($child->custom_text)) {
+                        foreach ($child->custom_text as $custom) {
+                            if (!empty(trim($custom))) {
+                                $productKey = $child->product?->name ?? 'Producto desconocido';
+                                if (!isset($report[$productKey])) {
+                                    $report[$productKey] = [
+                                        'product_name' => $productKey,
+                                        'supplier' => $child->product?->supplier?->name ?? '-',
+                                        'customs' => [],
+                                        'total_customs' => 0,
+                                    ];
+                                }
+                                $report[$productKey]['customs'][] = [
+                                    'text' => trim($custom),
+                                    'order_code' => $item->order?->order_code,
+                                    'quantity' => $child->quantity,
+                                    'item_id' => $child->id_order_item,
+                                ];
+                                $report[$productKey]['total_customs']++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Productos individuales con customs
+            if ($item->type_order === OrderItemType::PRODUCT && $item->is_customized && $item->custom_text && is_array($item->custom_text)) {
+                // Filtrar por estado si corresponde
+                if ($this->customsOnlyNotOrdered && ($item->supplier_status?->value !== SupplierOrderStatus::NOT_ORDERED->value)) {
+                    continue;
+                }
+                foreach ($item->custom_text as $custom) {
+                    if (!empty(trim($custom))) {
+                        $productKey = $item->product?->name ?? 'Producto desconocido';
+                        if (!isset($report[$productKey])) {
+                            $report[$productKey] = [
+                                'product_name' => $productKey,
+                                'supplier' => $item->product?->supplier?->name ?? '-',
+                                'customs' => [],
+                                'total_customs' => 0,
+                            ];
+                        }
+                        $report[$productKey]['customs'][] = [
+                            'text' => trim($custom),
+                            'order_code' => $item->order?->order_code,
+                            'quantity' => $item->quantity,
+                            'item_id' => $item->id_order_item,
+                        ];
+                        $report[$productKey]['total_customs']++;
+                    }
+                }
+            }
+        }
+
+        if (empty($report)) {
+            session()->flash('message', 'No hay productos personalizados en el filtro actual.');
+            return;
+        }
+
+        // Guardar el reporte en la sesión para mostrarlo
+        session()->put('customs_report', $report);
+        session()->flash('message', 'Reporte de customs generado. Se encontraron ' . count($report) . ' productos con personalizaciones.');
+    }
+
     public function markGroupAsOrdered(int $groupIndex): void
     {
         $groupedItems = $this->getGroupedItems();
-        
         if (!isset($groupedItems[$groupIndex])) {
             session()->flash('error', 'Grupo no encontrado.');
             return;
         }
-        
         $group = $groupedItems[$groupIndex];
         $updatedCount = 0;
-        
+
         foreach ($group->items as $item) {
+            if ($item->type_order === OrderItemType::SET) {
+                // Productos de la orden
+                $updatedCount += OrderItem::where('id_order', $item->id_order)
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->where('supplier_status', '!=', SupplierOrderStatus::DELIVERED)
+                    ->update([
+                        'supplier_status' => SupplierOrderStatus::ORDERED,
+                        'supplier_order_date' => now(),
+                    ]);
+                // El set también
+                if ($item->supplier_status !== SupplierOrderStatus::DELIVERED) {
+                    $item->supplier_status = SupplierOrderStatus::ORDERED;
+                    $item->supplier_order_date = now();
+                    $item->save();
+                    $updatedCount++;
+                }
+            }
             if ($item->type_order === OrderItemType::PRODUCT && $item->supplier_status !== SupplierOrderStatus::DELIVERED) {
                 $item->supplier_status = SupplierOrderStatus::ORDERED;
                 $item->supplier_order_date = now();
@@ -123,46 +296,66 @@ class Table extends Component
                 $updatedCount++;
             }
         }
-        
+
         session()->flash('message', "Se marcaron {$updatedCount} items como pedidos para el grupo: " . ($group->set_name ?? $group->product_name));
     }
 
     public function markGroupAsDelivered(int $groupIndex): void
     {
         $groupedItems = $this->getGroupedItems();
-        
         if (!isset($groupedItems[$groupIndex])) {
             session()->flash('error', 'Grupo no encontrado.');
             return;
         }
-        
         $group = $groupedItems[$groupIndex];
         $updatedCount = 0;
-        
+
         foreach ($group->items as $item) {
+            if ($item->type_order === OrderItemType::SET) {
+                $updatedCount += OrderItem::where('id_order', $item->id_order)
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->update([
+                        'supplier_status' => SupplierOrderStatus::DELIVERED,
+                    ]);
+                // El set también
+                $item->supplier_status = SupplierOrderStatus::DELIVERED;
+                $item->save();
+                $updatedCount++;
+            }
             if ($item->type_order === OrderItemType::PRODUCT) {
                 $item->supplier_status = SupplierOrderStatus::DELIVERED;
                 $item->save();
                 $updatedCount++;
             }
         }
-        
+
         session()->flash('message', "Se marcaron {$updatedCount} items como entregados para el grupo: " . ($group->set_name ?? $group->product_name));
     }
 
     public function markGroupAsNotOrdered(int $groupIndex): void
     {
         $groupedItems = $this->getGroupedItems();
-        
         if (!isset($groupedItems[$groupIndex])) {
             session()->flash('error', 'Grupo no encontrado.');
             return;
         }
-        
         $group = $groupedItems[$groupIndex];
         $updatedCount = 0;
-        
+
         foreach ($group->items as $item) {
+            if ($item->type_order === OrderItemType::SET) {
+                $updatedCount += OrderItem::where('id_order', $item->id_order)
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->update([
+                        'supplier_status' => SupplierOrderStatus::NOT_ORDERED,
+                        'supplier_order_date' => null,
+                    ]);
+                // El set también
+                $item->supplier_status = SupplierOrderStatus::NOT_ORDERED;
+                $item->supplier_order_date = null;
+                $item->save();
+                $updatedCount++;
+            }
             if ($item->type_order === OrderItemType::PRODUCT) {
                 $item->supplier_status = SupplierOrderStatus::NOT_ORDERED;
                 $item->supplier_order_date = null;
@@ -170,7 +363,7 @@ class Table extends Component
                 $updatedCount++;
             }
         }
-        
+
         session()->flash('message', "Se marcaron {$updatedCount} items como no pedidos para el grupo: " . ($group->set_name ?? $group->product_name));
     }
 
@@ -180,8 +373,20 @@ class Table extends Component
         
         if ($this->filterType === 'mandatory_sets') {
             // Agrupar sets obligatorios por id_set (mismo set)
-            return $query->get()
-                ->groupBy('id_set')
+            $items = $query->get();
+            
+            // Debug: verificar si tenemos items y si tienen children
+            if ($items->isEmpty()) {
+                session()->flash('debug', 'No se encontraron sets obligatorios');
+            } else {
+                $debugInfo = [];
+                foreach ($items as $item) {
+                    $debugInfo[] = "Set ID: {$item->id_order_item}, Children: " . ($item->children ? $item->children->count() : 'null');
+                }
+                session()->flash('debug', 'Sets encontrados: ' . implode(', ', $debugInfo));
+            }
+            
+            return $items->groupBy('id_set')
                 ->map(function ($items, $setId) {
                     $firstItem = $items->first();
                     return (object) [
@@ -193,6 +398,8 @@ class Table extends Component
                         'items_count' => $items->count(),
                         'items' => $items,
                         'avg_supplier_status' => $this->getAverageStatus($items),
+                        'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
+                        'customs_info' => $this->getCustomsInfo($items),
                     ];
                 })
                 ->values();
@@ -215,6 +422,7 @@ class Table extends Component
                             'items' => $items,
                             'avg_supplier_status' => $this->getAverageStatus($items),
                             'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
+                            'customs_info' => $this->getCustomsInfo($items),
                         ];
                     })
                     ->values();
@@ -238,6 +446,7 @@ class Table extends Component
                             'has_set_items' => $items->whereNotNull('id_set')->count() > 0,
                             'has_individual_items' => $items->whereNull('id_set')->count() > 0,
                             'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
+                            'customs_info' => $this->getCustomsInfo($items),
                         ];
                     })
                     ->values();
@@ -261,6 +470,7 @@ class Table extends Component
                         'items' => $items,
                         'avg_supplier_status' => $this->getAverageStatus($items),
                         'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
+                        'customs_info' => $this->getCustomsInfo($items),
                     ];
                 })
                 ->values();
@@ -285,6 +495,7 @@ class Table extends Component
                         'has_individual_items' => $items->whereNull('id_set')->count() > 0,
                         'is_from_optional_sets' => $items->whereNotNull('id_set')->first()?->set?->only_in_set === false,
                         'order_codes' => $items->pluck('order.order_code')->filter()->unique()->take(3)->values(),
+                        'customs_info' => $this->getCustomsInfo($items),
                     ];
                 })
                 ->values();
@@ -295,17 +506,43 @@ class Table extends Component
 
     protected function getAverageStatus($items)
     {
-        $statuses = $items->pluck('supplier_status')->filter();
+        $allStatuses = collect();
         
-        if ($statuses->isEmpty()) {
+        foreach ($items as $item) {
+            // Si es un item de tipo SET, obtener estados de sus productos hijos
+            if ($item->type_order === OrderItemType::SET) {
+                // Para sets obligatorios, buscar productos por id_set directamente
+                $setProducts = OrderItem::where('id_set', $item->id_set)
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->where('id_order', $item->id_order)
+                    ->get();
+                
+                foreach ($setProducts as $product) {
+                    if ($product->supplier_status) {
+                        $allStatuses->push($product->supplier_status);
+                    }
+                }
+                // Incluir también el estado del set
+                if ($item->supplier_status) {
+                    $allStatuses->push($item->supplier_status);
+                }
+            }
+            
+            // Si es un item de tipo PRODUCT, usar su estado directamente
+            if ($item->type_order === OrderItemType::PRODUCT && $item->supplier_status) {
+                $allStatuses->push($item->supplier_status);
+            }
+        }
+        
+        if ($allStatuses->isEmpty()) {
             return 'not_ordered';
         }
         
-        $statusCounts = $statuses->countBy(function ($status) {
+        $statusCounts = $allStatuses->countBy(function ($status) {
             return $status?->value ?? 'not_ordered';
         });
         
-        $totalItems = $statuses->count();
+        $totalItems = $allStatuses->count();
         
         // Determinar el estado predominante o mixto
         if ($statusCounts->get('delivered', 0) === $totalItems) {
@@ -326,10 +563,117 @@ class Table extends Component
         }
     }
 
+    protected function getCustomsInfo($items)
+    {
+        $allCustoms = [];
+        $customsCount = 0;
+        $customizedItemsCount = 0;
+        
+        foreach ($items as $item) {
+            // Si es un item de tipo SET, buscar customs en sus productos hijos
+            if ($item->type_order === OrderItemType::SET) {
+                // Para sets obligatorios, buscar productos por id_set directamente
+                $setProducts = OrderItem::where('id_set', $item->id_set)
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->where('id_order', $item->id_order)
+                    ->with(['product.supplier', 'order'])
+                    ->get();
+                
+                foreach ($setProducts as $child) {
+                    // Filtrar por estado si corresponde
+                    if ($this->customsOnlyNotOrdered && ($child->supplier_status?->value !== SupplierOrderStatus::NOT_ORDERED->value)) {
+                        continue;
+                    }
+                    if ($child->is_customized && $child->custom_text && is_array($child->custom_text)) {
+                        $customizedItemsCount++;
+                        foreach ($child->custom_text as $custom) {
+                            if (!empty(trim($custom))) {
+                                $allCustoms[] = [
+                                    'text' => trim($custom),
+                                    'item_id' => $child->id_order_item,
+                                    'order_code' => $item->order?->order_code, // Usar el order_code del set padre
+                                    'quantity' => $child->quantity,
+                                    'product_name' => $child->product?->name ?? 'Producto desconocido'
+                                ];
+                                $customsCount++;
+                            }
+                        }
+                    }
+                }
+                // Incluir también customs del SET si existieran (por compatibilidad futura)
+                if ($item->is_customized && $item->custom_text && is_array($item->custom_text)) {
+                    if (!$this->customsOnlyNotOrdered || ($item->supplier_status?->value === SupplierOrderStatus::NOT_ORDERED->value)) {
+                        $customizedItemsCount++;
+                        foreach ($item->custom_text as $custom) {
+                            if (!empty(trim($custom))) {
+                                $allCustoms[] = [
+                                    'text' => trim($custom),
+                                    'item_id' => $item->id_order_item,
+                                    'order_code' => $item->order?->order_code,
+                                    'quantity' => $item->quantity,
+                                    'product_name' => $item->set?->name ?? 'Set'
+                                ];
+                                $customsCount++;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Si es un item de tipo PRODUCT, buscar customs directamente
+            if ($item->type_order === OrderItemType::PRODUCT && $item->is_customized && $item->custom_text && is_array($item->custom_text)) {
+                if ($this->customsOnlyNotOrdered && ($item->supplier_status?->value !== SupplierOrderStatus::NOT_ORDERED->value)) {
+                    continue;
+                }
+                $customizedItemsCount++;
+                foreach ($item->custom_text as $custom) {
+                    if (!empty(trim($custom))) {
+                        $allCustoms[] = [
+                            'text' => trim($custom),
+                            'item_id' => $item->id_order_item,
+                            'order_code' => $item->order?->order_code,
+                            'quantity' => $item->quantity,
+                            'product_name' => $item->product?->name ?? 'Producto desconocido'
+                        ];
+                        $customsCount++;
+                    }
+                }
+            }
+        }
+
+        // Debug para sets obligatorios
+        if ($customsCount === 0 && $items->isNotEmpty() && $items->first()->type_order === OrderItemType::SET) {
+            $debugMsg = "Sets obligatorios - No customs encontrados. Items: " . $items->count();
+            foreach ($items as $item) {
+                $childrenCount = $item->children ? $item->children->count() : 0;
+                $setProductsCount = OrderItem::where('id_set', $item->id_set)
+                    ->where('type_order', OrderItemType::PRODUCT)
+                    ->where('id_order', $item->id_order)
+                    ->count();
+                $debugMsg .= " | Set {$item->id_order_item}: {$childrenCount} children, {$setProductsCount} productos en DB";
+            }
+            session()->flash('debug', $debugMsg);
+        }
+
+        return [
+            'has_customs' => $customsCount > 0,
+            'customs_count' => $customsCount,
+            'customized_items_count' => $customizedItemsCount,
+            'customs_list' => $allCustoms
+        ];
+    }
+
     protected function baseQuery()
     {
         $query = OrderItem::query()
-            ->with(['set', 'children', 'product.supplier', 'order'])
+            ->with([
+                'set', 
+                'children' => function ($q) {
+                    $q->with(['product.supplier', 'order']);
+                }, 
+                'product.supplier', 
+                'order'
+            ])
             ->whereNotNull('id_order'); // solo items con orden confirmada
 
         switch ($this->filterType) {
@@ -467,6 +811,7 @@ class Table extends Component
             'optionsPerPage' => [10, 25, 50],
             'statusLabels' => SupplierOrderStatus::labels(),
             'stats' => $stats,
+            'customsReport' => session('customs_report'),
         ]);
     }
 
