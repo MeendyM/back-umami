@@ -50,7 +50,6 @@
                             <x-sort-icon field="total" :sortField="$sortField" :sortAsc="$sortAsc" />
                         </div>
                     </th>
-                    <th class="px-2 py-2">Tipo de Pago</th>
                     <th class="px-2 py-2">Descuento</th>
                     <th class="px-2 py-2">Total Final</th>
                     <th class="px-2 py-2">
@@ -61,7 +60,7 @@
                             <x-sort-icon field="created_at" :sortField="$sortField" :sortAsc="$sortAsc" />
                         </div>
                     </th>
-                    <th class="px-2 py-2 text-center">Ver Recibos</th>
+                    <th class="px-2 py-2 text-center">Ver / otras acciones</th>
                     <th class="px-2 py-2 rounded-tr-md text-center">Marcar como</th>
                 </tr>
             </thead>
@@ -97,9 +96,6 @@
                             ${{ number_format($order->total, 2) }}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
-                            {{ ucfirst($order->payment_type ?? '-') }}
-                        </td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">
                             @if ($order->discount_amount)
                                 <div>
                                     <div class="text-green-600">-${{ number_format($order->discount_amount, 2) }}</div>
@@ -124,6 +120,26 @@
                             </div>
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
+                            <div class="flex flex-col gap-1 text-xs">
+                                <button 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
+                                    wire:click="$dispatch('showReceipts', { orderId: {{ $order->id_order }} })"
+                                    wire:loading.attr="disabled">
+                                    Ver Recibos
+                                </button>
+                                <button 
+                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
+                                    wire:click="$dispatch('showOrderItems', { orderId: {{ $order->id_order }} })"
+                                    wire:loading.attr="disabled">
+                                    Ver Productos
+                                </button>
+                                   <button 
+                                class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
+                                wire:click="$dispatch('showCashReceipModal', { orderId: {{ $order->id_order }} })"
+                                wire:loading.attr="disabled">
+                                Abono efectivo
+                            </button>
+                            </div>
                             <button
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
                                 wire:click="$dispatch('showReceipts', { orderId: {{ $order->id_order }} })"
@@ -131,8 +147,19 @@
                                 Ver Recibos
                             </button>
                         </td>
+                      
+                     
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center">
                             <div class="flex flex-col gap-1 text-xs">
+                              
+                                @if($order->status !== 'paid')
+                                <button 
+                                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
+                                    wire:click="changeStatusToPaid({{ $order->id_order }})"
+                                    wire:loading.attr="disabled"
+                                    wire:confirm="¿Marcar como 'Pagado'?">
+                                    Pagado
+                                </button>
                                 @if ($order->status !== 'review')
                                     <button
                                         class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs whitespace-nowrap"
@@ -194,8 +221,16 @@
         </div>
     </div>
 
+
     {{-- Modal para ver recibos --}}
     @livewire('orders.receipts-modal', [], key('orders.receipts-modal'))
+
+
+    {{-- Modal para ver productos de la orden --}}
+    @livewire('orders.order-items-modal', [], key('orders.order-items-modal'))
+
+    {{-- Modal para abono en efectivo --}}
+    @livewire('orders.cash-receip-modal', [], key('orders.cash-receip-modal'))
 
 
 </div>

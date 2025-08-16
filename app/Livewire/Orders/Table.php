@@ -53,9 +53,26 @@ class Table extends Component
 
     public function changeStatusToPaid($orderId)
     {
-        $order = Order::find($orderId);
+        $order = Order::with('user')->find($orderId);
         if ($order) {
+            if ($order->status === StatusOrder::DELIVERED->value) {
+                session()->flash('message', 'No se puede marcar como pagado una orden ya entregada.');
+                return;
+            }
             $order->update(['status' => StatusOrder::PAID->value]);
+            // Notificar usuario
+            if ($order->user) {
+                \App\Models\Notification::create([
+                    'user_id' => $order->user->id_user,
+                    'type' => \App\Enums\NotificationType::SUCCESS,
+                    'title' => 'Orden pagada',
+                    'message' => 'Tu orden #' . $order->id_order . ' ha sido marcada como pagada.',
+                    'data' => [
+                        'order_id' => $order->id_order,
+                        'action' => 'paid',
+                    ],
+                ]);
+            }
             $this->dispatch('update-order');
             session()->flash('message', 'Estado cambiado a "Pagado" exitosamente.');
         }
@@ -63,9 +80,26 @@ class Table extends Component
 
     public function changeStatusToDelivered($orderId)
     {
-        $order = Order::find($orderId);
+        $order = Order::with('user')->find($orderId);
         if ($order) {
+            if ($order->status !== StatusOrder::PAID->value) {
+                session()->flash('message', 'Solo se puede marcar como entregado una orden pagada.');
+                return;
+            }
             $order->update(['status' => StatusOrder::DELIVERED->value]);
+            // Notificar usuario
+            if ($order->user) {
+                \App\Models\Notification::create([
+                    'user_id' => $order->user->id_user,
+                    'type' => \App\Enums\NotificationType::INFO,
+                    'title' => 'Pedido entregado',
+                    'message' => 'Tu pedido #' . $order->id_order . ' ha sido entregado.',
+                    'data' => [
+                        'order_id' => $order->id_order,
+                        'action' => 'delivered',
+                    ],
+                ]);
+            }
             $this->dispatch('update-order');
             session()->flash('message', 'Estado cambiado a "Entregado" exitosamente.');
         }

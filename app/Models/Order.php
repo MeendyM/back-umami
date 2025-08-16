@@ -19,7 +19,35 @@ class Order extends Model
         'payment_type',
         'discount_amount',
         'final_total',//es el campo que se usa para calculos aunque el total sea el mismo
+        'order_code',
     ];
+
+    /**
+     * Boot method para generar order_code automáticamente
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            if (empty($order->order_code)) {
+                $order->order_code = self::generateUniqueOrderCode();
+            }
+        });
+    }
+
+    /**
+     * Generar un código único de 5 caracteres alfanuméricos
+     */
+    public static function generateUniqueOrderCode(): string
+    {
+        do {
+            // Generar código de 5 caracteres con letras y números
+            $code = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 5));
+        } while (self::where('order_code', $code)->exists());
+
+        return $code;
+    }
 
     // Relación: Orden pertenece a un usuario
     public function user()

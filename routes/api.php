@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Carrito
     Route::post('/cart/add', [CartController::class, 'addItem']);
     Route::post('/cart/remove', [CartController::class, 'removeItem']);
+    Route::post('/cart/removeSet', [CartController::class, 'removeSet']);
     Route::get('/cart/getByUser', [CartController::class, 'getByUser']);
     Route::post('/cart/edit', [CartController::class, 'edit']);
     Route::post('/cart/editCustomTexts', [CartController::class, 'editCustomTexts']);

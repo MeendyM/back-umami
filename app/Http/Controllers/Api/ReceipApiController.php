@@ -74,6 +74,7 @@ class ReceipApiController extends Controller
             Log::info('Estado de orden cambiado a paying', ['order_id' => $order->id_order]);
         }
 
+        $validatedData['payment_type'] = \App\Enums\ReceipPaymentType::TRANSFER->value;
         $receip = Receip::create($validatedData);
         Log::info('Recibo creado exitosamente', ['receip' => $receip]);
 
@@ -99,17 +100,56 @@ class ReceipApiController extends Controller
 
     public function getReceipsByOrderId($id_order)
     {
+        \Illuminate\Support\Facades\Log::info('Buscando recibos para la orden', ['id_order' => $id_order]);
         $receips = Receip::where('id_order', $id_order)->get();
+        // Agregar tipo y label a cada recibo
+        foreach ($receips as $receip) {
+            $receip->type = $receip->payment_type;
+            $receip->type_label = \App\Enums\ReceipPaymentType::labels()[$receip->payment_type->value ?? $receip->payment_type] ?? $receip->payment_type;
+        }
 
         if ($receips->isEmpty()) {
+            \Illuminate\Support\Facades\Log::warning('No se encontraron recibos para la orden', ['id_order' => $id_order]);
             return response()->json(['message' => 'No receips found for this order'], 404);
         }
 
         $totalPaid = $receips->sum('amount');
+        \Illuminate\Support\Facades\Log::info('Recibos encontrados', [
+            'id_order' => $id_order,
+            'total_receips' => $receips->count(),
+            'total_paid' => $totalPaid,
+        ]);
 
         return response()->json([
             'receips' => $receips,
             'total_paid' => $totalPaid
         ], 200);
     }
+    // Editar recibo solo si status es 'revisar'. Al editar, status pasa a 'reenviado'.
+    public function editReceip(Request $request, $id_receip)
+    {
+        $receip = \App\Models\Receip::find($id_receip);
+        if (!$receip) {
+            return response()->json(['message' => 'Receip not found'], 404);
+        }
+        if ($receip->status !== \App\Enums\ReceipStatus::REVIEW) {
+            return response()->json(['message' => 'Only receips with status "revisar" can be edited'], 403);
+        }
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'id_transaction' => 'required|string',
+            'url_img' => 'nullable|string',
+        ]);
+
+        $receip->amount = $validated['amount'];
+        $receip->id_transaction = $validated['id_transaction'];
+        $receip->url_img = $validated['url_img'] ?? $receip->url_img;
+        $receip->status = \App\Enums\ReceipStatus::RESENT;
+        $receip->save();
+
+        return response()->json(['message' => 'Receip updated and resent', 'receip' => $receip], 200);
+    }
+
+    
 }
