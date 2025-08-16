@@ -32,6 +32,6 @@ Route::middleware([
     Route::get('/order-items',[WebControllers::class, 'orderItems'])->name('order-items');
     Route::get('/users',[UserManagementController::class, 'users'])->name('users');
     Route::get('/institutions',[UserManagementController::class, 'institutions'])->name('institutions');
-    Route::get('/notifications',[NotificationController::class, 'index'])->name('notifications');
+    Route::get('/notifications',[WebControllers::class, 'notifications'])->name('notifications');
    
 });
