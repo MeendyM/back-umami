@@ -12,7 +12,16 @@ use Illuminate\Support\Facades\Auth;
 // Ruta raíz con redirección condicional
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect()->route('dashboard');
+        // Verificar si el usuario autenticado es ADMIN
+        if (Auth::user()->type === \App\Enums\TypeUser::ADMIN) {
+            return redirect()->route('dashboard');
+        } else {
+            // Usuario autenticado pero no es ADMIN - hacer logout y mostrar mensaje
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect()->route('login')->with('error', 'Acceso denegado. Solo usuarios administradores pueden acceder.');
+        }
     }
     return redirect()->route('login');
 });

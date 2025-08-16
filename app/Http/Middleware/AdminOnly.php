@@ -24,7 +24,12 @@ class AdminOnly
 
         // Verificar si el usuario es ADMIN
         if (Auth::user()->type !== TypeUser::ADMIN) {
-            abort(403, 'Acceso denegado. Solo usuarios administradores pueden acceder.');
+            // Hacer logout del usuario no-ADMIN y redirigir al login con mensaje
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return redirect()->route('login')->with('error', 'Acceso denegado. Solo usuarios administradores pueden acceder a esta sección.');
         }
 
         return $next($request);
