@@ -140,12 +140,6 @@
                                 Abono efectivo
                             </button>
                             </div>
-                            <button
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs whitespace-nowrap"
-                                wire:click="$dispatch('showReceipts', { orderId: {{ $order->id_order }} })"
-                                wire:loading.attr="disabled">
-                                Ver Recibos
-                            </button>
                         </td>
                       
                      

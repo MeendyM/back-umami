@@ -1,30 +1,34 @@
 <div class="p-4">
     {{-- Enlaces rápidos para cambiar de vista --}}
     <div class="mb-4 flex flex-wrap gap-2">
-        <button wire:click="$set('filterType', 'mandatory_sets')" 
-                class="px-3 py-2 rounded text-sm {{ $filterType === 'mandatory_sets' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+        <button wire:click="$set('filterType', 'mandatory_sets')"
+            class="px-3 py-2 text-sm rounded-2xl {{ $filterType === 'mandatory_sets' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
             Sets Obligatorios
         </button>
-        <button wire:click="$set('filterType', 'optional_sets')" 
-                class="px-3 py-2 rounded text-sm {{ $filterType === 'optional_sets' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+        <button wire:click="$set('filterType', 'optional_sets')"
+            class="px-3 py-2 text-sm rounded-2xl {{ $filterType === 'optional_sets' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
             Sets Opcionales
         </button>
-        <button wire:click="$set('filterType', 'individual_products')" 
-                class="px-3 py-2 rounded text-sm {{ $filterType === 'individual_products' ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+        <button wire:click="$set('filterType', 'individual_products')"
+            class="px-3 py-2 text-sm rounded-2xl {{ $filterType === 'individual_products' ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
             Productos Individuales
         </button>
-        <button wire:click="$set('filterType', 'all_products')" 
-                class="px-3 py-2 rounded text-sm {{ $filterType === 'all_products' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+        <button wire:click="$set('filterType', 'all_products')"
+            class="px-3 py-2 text-sm rounded-2xl {{ $filterType === 'all_products' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
             Todos los Productos
         </button>
-     
+
     </div>
 
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-        <div class="flex gap-2 items-center">
+        {{-- <div class="flex gap-2 items-center">
             <input type="text" wire:model.debounce.500ms="search" placeholder="Buscar por ID, código de orden, producto, proveedor o set" class="border rounded px-3 py-2 w-80">
            
-        </div>
+        </div> --}}
+
+        <x-search class="focus:border-indigo-400 focus:ring-indigo-400">
+            Buscar...
+        </x-search>
         <div class="ml-auto flex gap-2 items-center text-sm text-gray-600">
             {{-- Toggle para vista agrupada --}}
             @if (in_array($filterType, ['mandatory_sets', 'optional_sets', 'individual_products', 'all_products']))
@@ -33,30 +37,32 @@
                     <span class="text-sm">Vista agrupada</span>
                 </label>
             @endif
-            
+
             {{-- Toggle para mostrar customs --}}
             <label class="flex items-center gap-2 mr-4 p-2 bg-green-50 rounded border border-green-200">
                 <input type="checkbox" wire:model="showCustoms" class="rounded">
                 <span class="text-sm text-green-700 font-medium">Mostrar Customs</span>
             </label>
-            
+
             {{-- Nuevo: Mostrar solo customs de items NO pedidos --}}
             <label class="flex items-center gap-2 mr-4 p-2 bg-yellow-50 rounded border border-yellow-200">
                 <input type="checkbox" wire:model="customsOnlyNotOrdered" class="rounded">
                 <span class="text-sm text-yellow-700 font-medium">Solo NO pedidos</span>
             </label>
-            
+
             {{-- Botón para generar reporte de customs --}}
-            <button wire:click="generateCustomsReport" class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm mr-4">
+            <button wire:click="generateCustomsReport"
+                class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm mr-4">
                 Reporte Customs
             </button>
             {{-- Nuevo: Cerrar reporte --}}
             @if ($customsReport)
-                <button wire:click="closeCustomsReport" class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-sm mr-4">
+                <button wire:click="closeCustomsReport"
+                    class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-sm mr-4">
                     Cerrar Reporte
                 </button>
             @endif
-            
+
             {{-- Filtro específico para sets opcionales --}}
             @if ($filterType === 'optional_sets')
                 <div class="flex items-center gap-2 mr-4 p-2 bg-indigo-50 rounded border border-indigo-200">
@@ -68,13 +74,16 @@
                     </select>
                 </div>
             @endif
-            
-            <span>Ordenar por:</span>
-            <select wire:change="sortBy($event.target.value)" class="border rounded px-2 py-1">
+
+            <span class="text-smm text-tx-black font-bold mb-4">Ordenar por:</span>
+            <select wire:change="sortBy($event.target.value)"
+                class="border rounded-full px-2 py-1 text-tx-black  border-light-blue focus:ring-0 focus:border-black2 leading-tight focus:outline-none focus:shadow-outline disabled:cursor-not-allowed disabled:text-gray2 placeholder:text-gray2 border-gray2 text-black2 font-dm_sans text-sm lg:text-base ring-0">
                 <option value="id_order_item">ID</option>
                 <option value="supplier_status">Estado proveedor</option>
             </select>
-            <button wire:click="sortBy('id_order_item')" class="px-3 py-1 border rounded">{{ $sortAsc ? 'Asc' : 'Desc' }}</button>
+            <button wire:click="sortBy('id_order_item')" class="px-3 py-1 border rounded">
+                {{ $sortAsc ? 'Asc' : 'Desc' }}
+            </button>
         </div>
     </div>
 
@@ -104,10 +113,12 @@
             <div class="flex justify-between items-center mb-3">
                 <h3 class="font-medium text-green-700">Reporte de Personalizaciones para Proveedor</h3>
                 <div class="flex gap-2">
-                    <button onclick="window.print()" class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm">
+                    <button onclick="window.print()"
+                        class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-sm">
                         Imprimir
                     </button>
-                    <button wire:click="closeCustomsReport" class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-sm">
+                    <button wire:click="closeCustomsReport"
+                        class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-sm">
                         Cerrar
                     </button>
                 </div>
@@ -118,14 +129,16 @@
                         <div class="font-medium text-gray-800 mb-2">
                             {{ $productData['product_name'] }}
                             <span class="text-sm text-gray-500 ml-2">({{ $productData['supplier'] }})</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
                                 {{ $productData['total_customs'] }} personalizaciones
                             </span>
                         </div>
                         <div class="space-y-1">
                             @foreach ($productData['customs'] as $custom)
                                 <div class="text-sm border-l-2 border-green-200 pl-3">
-                                    <span class="font-mono bg-blue-100 text-blue-700 px-1 py-0.5 rounded text-xs">{{ $custom['order_code'] }}</span>
+                                    <span
+                                        class="font-mono bg-blue-100 text-blue-700 px-1 py-0.5 rounded text-xs">{{ $custom['order_code'] }}</span>
                                     <span class="mx-2">→</span>
                                     <span class="font-medium">{{ $custom['text'] }}</span>
                                     <span class="text-gray-500 ml-2">(Cantidad: {{ $custom['quantity'] }})</span>
@@ -146,7 +159,7 @@
                     <div class="font-medium mb-1">Sets Obligatorios</div>
                     <div class="mb-2 text-blue-600">Sets que solo se pueden pedir completos al proveedor</div>
                     @if ($showGrouped && isset($stats['unique_sets']))
-                        <strong>{{ $stats['unique_sets'] }}</strong> tipos de sets diferentes, 
+                        <strong>{{ $stats['unique_sets'] }}</strong> tipos de sets diferentes,
                         <strong>{{ $stats['total_sets'] }}</strong> items totales
                     @else
                         <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets que deben pedirse completos
@@ -164,32 +177,33 @@
                     <div class="mb-2 text-blue-600">Sets donde los productos se pueden pedir por separado</div>
                     @if ($optionalSetsFilter === 'sets_only')
                         @if ($showGrouped && isset($stats['unique_sets']))
-                            <strong>{{ $stats['unique_sets'] }}</strong> tipos de sets diferentes, 
+                            <strong>{{ $stats['unique_sets'] }}</strong> tipos de sets diferentes,
                             <strong>{{ $stats['total_sets'] }}</strong> items totales
                         @else
                             <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets opcionales
                         @endif
                     @elseif ($optionalSetsFilter === 'products_only')
                         @if ($showGrouped && isset($stats['unique_products']))
-                            <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
+                            <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes,
                             <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales
                         @else
                             <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos de sets opcionales
                         @endif
                     @else
                         @if ($showGrouped && isset($stats['unique_products']))
-                            <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
-                            <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales, 
+                            <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes,
+                            <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales,
                             <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets
                         @else
-                            <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets, <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos relacionados
+                            <strong>{{ $stats['total_sets'] ?? 0 }}</strong> sets,
+                            <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos relacionados
                         @endif
                     @endif
                 @elseif ($filterType === 'individual_products')
                     <div class="font-medium mb-1">Productos Individuales</div>
                     <div class="mb-2 text-blue-600">Productos que no pertenecen a ningún set</div>
                     @if ($showGrouped && isset($stats['unique_products']))
-                        <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
+                        <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes,
                         <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales
                     @else
                         <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos sin set asociado
@@ -198,15 +212,17 @@
                     <div class="font-medium mb-1">Todos los Productos</div>
                     <div class="mb-2 text-blue-600">Productos de sets opcionales + productos individuales</div>
                     @if ($showGrouped && isset($stats['unique_products']))
-                        <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes, 
+                        <strong>{{ $stats['unique_products'] }}</strong> tipos de productos diferentes,
                         <strong>{{ $stats['total_products'] ?? 0 }}</strong> unidades totales
                         <div class="text-xs mt-1 text-blue-500">
-                            ({{ $stats['total_products_from_sets'] ?? 0 }} de sets + {{ $stats['total_individual_products'] ?? 0 }} individuales)
+                            ({{ $stats['total_products_from_sets'] ?? 0 }} de sets +
+                            {{ $stats['total_individual_products'] ?? 0 }} individuales)
                         </div>
                     @else
                         <strong>{{ $stats['total_products'] ?? 0 }}</strong> productos totales
                         <div class="text-xs mt-1 text-blue-500">
-                            ({{ $stats['total_products_from_sets'] ?? 0 }} de sets + {{ $stats['total_individual_products'] ?? 0 }} individuales)
+                            ({{ $stats['total_products_from_sets'] ?? 0 }} de sets +
+                            {{ $stats['total_individual_products'] ?? 0 }} individuales)
                         </div>
                     @endif
                 @endif
@@ -214,13 +230,13 @@
         </div>
     @endif
 
-    <div class="overflow-x-auto bg-white rounded shadow">
+    <div class="overflow-x-auto px-4 py-4 bg-white custom-box-shadow rounded-t-[16px]">
         @if ($showGrouped && $groupedItems)
             {{-- Vista agrupada --}}
-            <table class="min-w-full text-sm">
-                <thead class="bg-gray-100 text-gray-700">
-                    <tr>
-                        <th class="px-4 py-2 text-left">
+            <table class="table-auto w-full">
+                <thead>
+                    <tr class="text-gray text-smm font-semibold text-left">
+                        <th class="px-2 py-2 rounded-tl-md">
                             @if ($filterType === 'mandatory_sets')
                                 Set
                             @elseif ($filterType === 'optional_sets' && $optionalSetsFilter === 'sets_only')
@@ -241,50 +257,75 @@
                         <th class="px-4 py-2 text-left">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody>
                     @forelse ($groupedItems as $grouped)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-2">
+                        <tr class="text-left text-sm hover:bg-light-blue">
+                            <td class="border-b border-t border-light-blue px-2 py-2"
                                 <div class="font-medium">
                                     @if ($grouped->type === 'grouped_set')
                                         {{ $grouped->set_name }}
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-100 text-red-700 ml-2">Set Obligatorio</span>
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-100 text-red-700 ml-2">Set
+                                            Obligatorio</span>
                                     @else
                                         {{ $grouped->product_name }}
                                         @if ($filterType === 'optional_sets')
                                             @if ($optionalSetsFilter === 'sets_only')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700 ml-2">Set Opcional</span>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700 ml-2">Set
+                                                    Opcional</span>
                                             @elseif ($optionalSetsFilter === 'products_only')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 ml-2">De Set</span>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 ml-2">De
+                                                    Set</span>
                                             @else
-                                                @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 ml-2">Set + Individual</span>
+                                                @if (isset($grouped->has_set_items) &&
+                                                        $grouped->has_set_items &&
+                                                        isset($grouped->has_individual_items) &&
+                                                        $grouped->has_individual_items)
+                                                    <span
+                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 ml-2">Set
+                                                        + Individual</span>
                                                 @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 ml-2">De Set</span>
+                                                    <span
+                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 ml-2">De
+                                                        Set</span>
                                                 @else
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
+                                                    <span
+                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
                                                 @endif
                                             @endif
                                         @elseif ($filterType === 'all_products')
-                                            @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 ml-2">Mixto</span>
+                                            @if (isset($grouped->has_set_items) &&
+                                                    $grouped->has_set_items &&
+                                                    isset($grouped->has_individual_items) &&
+                                                    $grouped->has_individual_items)
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700 ml-2">Mixto</span>
                                             @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700 ml-2">De Set Opcional</span>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700 ml-2">De
+                                                    Set Opcional</span>
                                             @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Individual</span>
                                             @endif
                                         @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Producto</span>
+                                            <span
+                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700 ml-2">Producto</span>
                                         @endif
                                     @endif
                                 </div>
                                 @if (isset($grouped->order_codes) && $grouped->order_codes->count() > 0)
                                     <div class="mt-1 flex flex-wrap gap-1">
                                         @foreach ($grouped->order_codes as $code)
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $code }}</span>
+                                            <span
+                                                class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $code }}</span>
                                         @endforeach
                                         @if ($grouped->items_count > $grouped->order_codes->count())
-                                            <span class="text-xs text-gray-500">+{{ $grouped->items_count - $grouped->order_codes->count() }} más</span>
+                                            <span
+                                                class="text-xs text-gray-500">+{{ $grouped->items_count - $grouped->order_codes->count() }}
+                                                más</span>
                                         @endif
                                     </div>
                                 @endif
@@ -296,7 +337,8 @@
                                         <div class="space-y-1">
                                             @foreach ($grouped->customs_info['customs_list'] as $custom)
                                                 <div class="text-xs text-green-600">
-                                                    <span class="font-mono bg-white px-1 py-0.5 rounded">{{ $custom['order_code'] }}</span>
+                                                    <span
+                                                        class="font-mono bg-white px-1 py-0.5 rounded">{{ $custom['order_code'] }}</span>
                                                     <span class="mx-1">|</span>
                                                     <span>{{ $custom['text'] }}</span>
                                                     <span class="mx-1">|</span>
@@ -307,30 +349,30 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-4 py-2">{{ $grouped->supplier_name }}</td>
-                            <td class="px-4 py-2">
+                            <td class="border-b border-t border-light-blue px-2 py-2">{{ $grouped->supplier_name }}</td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
                                 <span class="text-lg font-bold text-blue-600">{{ $grouped->total_quantity }}</span>
                             </td>
-                            <td class="px-4 py-2">
+                            <td class="border-b border-t border-light-blue px-2 py-2">
                                 <span class="text-sm text-gray-600">{{ $grouped->items_count }} items</span>
                                 @if (isset($grouped->customs_info) && $grouped->customs_info && $grouped->customs_info['has_customs'])
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
+                                    <span
+                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
                                         {{ $grouped->customs_info['customs_count'] }} customs
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
-                                    @if(str_starts_with($grouped->avg_supplier_status, 'mixed'))
-                                        bg-orange-100 text-orange-700
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                                    @if (str_starts_with($grouped->avg_supplier_status, 'mixed')) bg-orange-100 text-orange-700
                                     @elseif($grouped->avg_supplier_status === 'not_ordered') 
                                         bg-gray-100 text-gray-700
                                     @elseif($grouped->avg_supplier_status === 'ordered') 
                                         bg-blue-100 text-blue-700
                                     @elseif($grouped->avg_supplier_status === 'delivered') 
-                                        bg-green-100 text-green-700
-                                    @endif">
-                                    @if($grouped->avg_supplier_status === 'mixed_delivered')
+                                        bg-green-100 text-green-700 @endif">
+                                    @if ($grouped->avg_supplier_status === 'mixed_delivered')
                                         Mixto (algunos entregados)
                                     @elseif($grouped->avg_supplier_status === 'mixed_ordered')
                                         Mixto (algunos pedidos)
@@ -340,8 +382,11 @@
                                 </span>
                             </td>
                             @if ($filterType === 'optional_sets' && $optionalSetsFilter === 'both')
-                                <td class="px-4 py-2">
-                                    @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
+                                <td class="border-b border-t border-light-blue px-2 py-2">
+                                    @if (isset($grouped->has_set_items) &&
+                                            $grouped->has_set_items &&
+                                            isset($grouped->has_individual_items) &&
+                                            $grouped->has_individual_items)
                                         <span class="text-sm text-purple-600 font-medium">Mixto</span>
                                     @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
                                         <span class="text-sm text-yellow-600">Solo de sets</span>
@@ -350,8 +395,11 @@
                                     @endif
                                 </td>
                             @elseif ($filterType === 'all_products')
-                                <td class="px-4 py-2">
-                                    @if (isset($grouped->has_set_items) && $grouped->has_set_items && isset($grouped->has_individual_items) && $grouped->has_individual_items)
+                                <td class="border-b border-t border-light-blue px-2 py-2">
+                                    @if (isset($grouped->has_set_items) &&
+                                            $grouped->has_set_items &&
+                                            isset($grouped->has_individual_items) &&
+                                            $grouped->has_individual_items)
                                         <span class="text-sm text-purple-600 font-medium">Mixto</span>
                                     @elseif (isset($grouped->has_set_items) && $grouped->has_set_items)
                                         <span class="text-sm text-blue-600">De sets opcionales</span>
@@ -360,45 +408,45 @@
                                     @endif
                                 </td>
                             @endif
-                            <td class="px-4 py-2">
+                            <td class="border-b border-t border-light-blue px-2 py-2">
                                 <div class="flex flex-col gap-2">
                                     {{-- Acciones grupales --}}
                                     <div class="flex flex-col gap-1">
-                                        @if(in_array($grouped->avg_supplier_status, ['not_ordered', 'mixed_ordered']))
-                                            <button wire:click="markGroupAsOrdered({{ $loop->index }})" 
-                                                    class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">
-                                                @if($grouped->avg_supplier_status === 'mixed_ordered')
+                                        @if (in_array($grouped->avg_supplier_status, ['not_ordered', 'mixed_ordered']))
+                                            <button wire:click="markGroupAsOrdered({{ $loop->index }})"
+                                                class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">
+                                                @if ($grouped->avg_supplier_status === 'mixed_ordered')
                                                     Marcar todos como pedidos
                                                 @else
                                                     Marcar grupo como pedido
                                                 @endif
                                             </button>
                                         @endif
-                                        
-                                        @if(in_array($grouped->avg_supplier_status, ['ordered', 'mixed_ordered', 'mixed_delivered']))
-                                            <button wire:click="markGroupAsDelivered({{ $loop->index }})" 
-                                                    class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">
-                                                @if(str_starts_with($grouped->avg_supplier_status, 'mixed'))
+
+                                        @if (in_array($grouped->avg_supplier_status, ['ordered', 'mixed_ordered', 'mixed_delivered']))
+                                            <button wire:click="markGroupAsDelivered({{ $loop->index }})"
+                                                class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">
+                                                @if (str_starts_with($grouped->avg_supplier_status, 'mixed'))
                                                     Marcar todos como entregados
                                                 @else
                                                     Marcar grupo como entregado
                                                 @endif
                                             </button>
                                         @endif
-                                        
+
                                         {{-- Botón para resetear estado --}}
-                                        @if($grouped->avg_supplier_status !== 'not_ordered')
-                                            <button wire:click="markGroupAsNotOrdered({{ $loop->index }})" 
-                                                    class="px-2 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs"
-                                                    onclick="return confirm('¿Estás seguro de que quieres resetear el estado de todos los items?')">
+                                        @if ($grouped->avg_supplier_status !== 'not_ordered')
+                                            <button wire:click="markGroupAsNotOrdered({{ $loop->index }})"
+                                                class="px-2 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs"
+                                                onclick="return confirm('¿Estás seguro de que quieres resetear el estado de todos los items?')">
                                                 Resetear grupo
                                             </button>
                                         @endif
                                     </div>
-                                    
+
                                     {{-- Botón de detalles --}}
-                                    <button wire:click="toggleGroupedDetails({{ $loop->index }})" 
-                                            class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs">
+                                    <button wire:click="toggleGroupedDetails({{ $loop->index }})"
+                                        class="px-3 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs">
                                         @if (in_array($loop->index, $expandedGroups))
                                             Ocultar detalles
                                         @else
@@ -408,11 +456,12 @@
                                 </div>
                             </td>
                         </tr>
-                        
+
                         {{-- Fila expandible con detalles --}}
                         @if (in_array($loop->index, $expandedGroups))
                             <tr>
-                                <td colspan="@if($filterType === 'optional_sets' && $optionalSetsFilter === 'both') 7 @elseif($filterType === 'all_products') 7 @else 6 @endif" class="px-4 py-2 bg-gray-50">
+                                <td colspan="@if ($filterType === 'optional_sets' && $optionalSetsFilter === 'both') 7 @elseif($filterType === 'all_products') 7 @else 6 @endif"
+                                    class="px-4 py-2 bg-gray-50">
                                     <div class="space-y-2">
                                         <div class="flex justify-between items-center mb-3">
                                             <h4 class="font-medium text-sm text-gray-700">
@@ -422,7 +471,7 @@
                                                     Detalles de items individuales:
                                                 @endif
                                             </h4>
-                                            @if(str_starts_with($grouped->avg_supplier_status, 'mixed'))
+                                            @if (str_starts_with($grouped->avg_supplier_status, 'mixed'))
                                                 <div class="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
                                                     <strong>Estado Mixto:</strong> Los items tienen diferentes estados
                                                 </div>
@@ -434,63 +483,80 @@
                                                 @foreach ($grouped->items as $setItem)
                                                     @php
                                                         // Para sets obligatorios, buscar productos por id_set directamente
-                                                        $setProducts = \App\Models\OrderItem::where('id_set', $setItem->id_set)
+                                                        $setProducts = \App\Models\OrderItem::where(
+                                                            'id_set',
+                                                            $setItem->id_set,
+                                                        )
                                                             ->where('type_order', \App\Enums\OrderItemType::PRODUCT)
                                                             ->where('id_order', $setItem->id_order)
                                                             ->with(['product.supplier', 'order'])
                                                             ->get();
                                                     @endphp
-                                                    
+
                                                     @if ($setProducts->count() > 0)
                                                         @foreach ($setProducts as $childProduct)
-                                                            <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
+                                                            <div
+                                                                class="flex justify-between items-center p-2 bg-white rounded border text-xs">
                                                                 <div class="flex-1">
-                                                                    <span class="font-medium">Producto: {{ $childProduct->product?->name ?? 'Producto desconocido' }}</span>
+                                                                    <span class="font-medium">Producto:
+                                                                        {{ $childProduct->product?->name ?? 'Producto desconocido' }}</span>
                                                                     <span class="mx-2">|</span>
-                                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $setItem->order?->order_code ?? '-' }}</span>
+                                                                    <span
+                                                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $setItem->order?->order_code ?? '-' }}</span>
                                                                     <span class="mx-2">|</span>
-                                                                    <span>Cantidad: {{ $childProduct->quantity }}</span>
+                                                                    <span>Cantidad:
+                                                                        {{ $childProduct->quantity }}</span>
                                                                     <span class="mx-2">|</span>
-                                                                    <span class="text-red-600">Del set: {{ $setItem->set?->name }}</span>
+                                                                    <span class="text-red-600">Del set:
+                                                                        {{ $setItem->set?->name }}</span>
                                                                     @if ($childProduct->supplier_order_date)
                                                                         <span class="mx-2">|</span>
-                                                                        <span>Fecha: {{ $childProduct->supplier_order_date->format('Y-m-d') }}</span>
+                                                                        <span>Fecha:
+                                                                            {{ $childProduct->supplier_order_date->format('Y-m-d') }}</span>
                                                                     @endif
-                                                                    
+
                                                                     @if ($showCustoms && $childProduct->is_customized && $childProduct->custom_text && is_array($childProduct->custom_text))
                                                                         <div class="mt-1 flex flex-wrap gap-1">
                                                                             @foreach ($childProduct->custom_text as $custom)
                                                                                 @if (!empty(trim($custom)))
-                                                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">{{ trim($custom) }}</span>
+                                                                                    <span
+                                                                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">{{ trim($custom) }}</span>
                                                                                 @endif
                                                                             @endforeach
                                                                         </div>
                                                                     @endif
                                                                 </div>
                                                                 <div class="flex items-center gap-2">
-                                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
-                                                                        @if($childProduct->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
+                                                                    <span
+                                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                                                                        @if ($childProduct->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
                                                                         @elseif($childProduct->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
-                                                                        @elseif($childProduct->supplier_status?->value === 'delivered') bg-green-100 text-green-700
-                                                                        @endif">
+                                                                        @elseif($childProduct->supplier_status?->value === 'delivered') bg-green-100 text-green-700 @endif">
                                                                         {{ App\Enums\SupplierOrderStatus::labels()[$childProduct->supplier_status?->value ?? 'not_ordered'] }}
                                                                     </span>
-                                                                    
-                                                                    @if($childProduct->supplier_status?->value === 'not_ordered')
-                                                                        <button wire:click="markAsOrdered({{ $childProduct->id_order_item }})" class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Pedir</button>
+
+                                                                    @if ($childProduct->supplier_status?->value === 'not_ordered')
+                                                                        <button
+                                                                            wire:click="markAsOrdered({{ $childProduct->id_order_item }})"
+                                                                            class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Pedir</button>
                                                                     @elseif($childProduct->supplier_status?->value === 'ordered')
-                                                                        <button wire:click="markAsDelivered({{ $childProduct->id_order_item }})" class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Entregado</button>
+                                                                        <button
+                                                                            wire:click="markAsDelivered({{ $childProduct->id_order_item }})"
+                                                                            class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Entregado</button>
                                                                     @endif
                                                                 </div>
                                                             </div>
                                                         @endforeach
                                                     @else
                                                         {{-- Fallback: mostrar el set sin productos --}}
-                                                        <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
+                                                        <div
+                                                            class="flex justify-between items-center p-2 bg-white rounded border text-xs">
                                                             <div class="flex-1">
-                                                                <span class="font-medium">Set ID: {{ $setItem->id_order_item }}</span>
+                                                                <span class="font-medium">Set ID:
+                                                                    {{ $setItem->id_order_item }}</span>
                                                                 <span class="mx-2">|</span>
-                                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $setItem->order?->order_code ?? '-' }}</span>
+                                                                <span
+                                                                    class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $setItem->order?->order_code ?? '-' }}</span>
                                                                 <span class="mx-2">|</span>
                                                                 <span>Cantidad: {{ $setItem->quantity }}</span>
                                                                 <span class="mx-2">|</span>
@@ -502,49 +568,59 @@
                                             @else
                                                 {{-- Para productos agrupados, mostrar los items individuales --}}
                                                 @foreach ($grouped->items as $item)
-                                                    <div class="flex justify-between items-center p-2 bg-white rounded border text-xs">
+                                                    <div
+                                                        class="flex justify-between items-center p-2 bg-white rounded border text-xs">
                                                         <div class="flex-1">
-                                                            <span class="font-medium">ID: {{ $item->id_order_item }}</span>
+                                                            <span class="font-medium">ID:
+                                                                {{ $item->id_order_item }}</span>
                                                             <span class="mx-2">|</span>
-                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $item->order?->order_code ?? '-' }}</span>
+                                                            <span
+                                                                class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono">{{ $item->order?->order_code ?? '-' }}</span>
                                                             <span class="mx-2">|</span>
                                                             <span>Cantidad: {{ $item->quantity }}</span>
                                                             @if ($item->id_set)
                                                                 <span class="mx-2">|</span>
-                                                                <span class="text-yellow-600">Set: {{ $item->set?->name }}</span>
+                                                                <span class="text-yellow-600">Set:
+                                                                    {{ $item->set?->name }}</span>
                                                             @else
                                                                 <span class="mx-2">|</span>
                                                                 <span class="text-green-600">Individual</span>
                                                             @endif
                                                             @if ($item->supplier_order_date)
                                                                 <span class="mx-2">|</span>
-                                                                <span>Fecha: {{ $item->supplier_order_date->format('Y-m-d') }}</span>
+                                                                <span>Fecha:
+                                                                    {{ $item->supplier_order_date->format('Y-m-d') }}</span>
                                                             @endif
-                                                            
+
                                                             @if ($showCustoms && $item->is_customized && $item->custom_text && is_array($item->custom_text))
                                                                 <div class="mt-1 flex flex-wrap gap-1">
                                                                     @foreach ($item->custom_text as $custom)
                                                                         @if (!empty(trim($custom)))
-                                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">{{ trim($custom) }}</span>
+                                                                            <span
+                                                                                class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">{{ trim($custom) }}</span>
                                                                         @endif
                                                                     @endforeach
                                                                 </div>
                                                             @endif
                                                         </div>
                                                         <div class="flex items-center gap-2">
-                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
-                                                                @if($item->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
+                                                            <span
+                                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                                                                @if ($item->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
                                                                 @elseif($item->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
-                                                                @elseif($item->supplier_status?->value === 'delivered') bg-green-100 text-green-700
-                                                                @endif">
+                                                                @elseif($item->supplier_status?->value === 'delivered') bg-green-100 text-green-700 @endif">
                                                                 {{ App\Enums\SupplierOrderStatus::labels()[$item->supplier_status?->value ?? 'not_ordered'] }}
                                                             </span>
-                                                            
+
                                                             @if ($item->type_order?->value === 'product')
-                                                                @if($item->supplier_status?->value === 'not_ordered')
-                                                                    <button wire:click="markAsOrdered({{ $item->id_order_item }})" class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Pedir</button>
+                                                                @if ($item->supplier_status?->value === 'not_ordered')
+                                                                    <button
+                                                                        wire:click="markAsOrdered({{ $item->id_order_item }})"
+                                                                        class="px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Pedir</button>
                                                                 @elseif($item->supplier_status?->value === 'ordered')
-                                                                    <button wire:click="markAsDelivered({{ $item->id_order_item }})" class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Entregado</button>
+                                                                    <button
+                                                                        wire:click="markAsDelivered({{ $item->id_order_item }})"
+                                                                        class="px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Entregado</button>
                                                                 @endif
                                                             @endif
                                                         </div>
@@ -558,7 +634,8 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="@if($filterType === 'optional_sets' && $optionalSetsFilter === 'both') 7 @elseif($filterType === 'all_products') 7 @else 6 @endif" class="px-4 py-6 text-center text-gray-500">
+                            <td colspan="@if ($filterType === 'optional_sets' && $optionalSetsFilter === 'both') 7 @elseif($filterType === 'all_products') 7 @else 6 @endif"
+                                class="px-4 py-6 text-center text-gray-500">
                                 No hay items para agrupar
                             </td>
                         </tr>
@@ -568,142 +645,167 @@
         @else
             {{-- Vista normal --}}
             <table class="min-w-full text-sm">
-            <thead class="bg-gray-100 text-gray-700">
-                <tr>
-                    <th class="px-4 py-2 text-left">ID</th>
-                    <th class="px-4 py-2 text-left">Código Orden</th>
-                    <th class="px-4 py-2 text-left">Tipo</th>
-                    <th class="px-4 py-2 text-left">Detalle</th>
-                    <th class="px-4 py-2 text-left">Proveedor</th>
-                    <th class="px-4 py-2 text-left">Cantidad</th>
-                    <th class="px-4 py-2 text-left">Estado Proveedor</th>
-                    <th class="px-4 py-2 text-left">Fecha Pedido</th>
-                    <th class="px-4 py-2 text-left">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                @forelse ($items as $item)
-                    <tr>
-                        <td class="px-4 py-2">{{ $item->id_order_item }}</td>
-                        <td class="px-4 py-2">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono font-medium">
-                                {{ $item->order?->order_code ?? '-' }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-2">
-                            @if ($item->type_order?->value === 'set')
-                                @if ($item->set?->only_in_set)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Set Obligatorio</span>
+                <thead>
+                    <tr class="text-gray text-smm font-semibold text-left">
+                        <th class="px-2 py-2 rounded-tl-md">ID</th>
+                        <th class="px-2 py-2 rounded-tl-md">Código Orden</th>
+                        <th class="px-2 py-2 rounded-tl-md">Tipo</th>
+                        <th class="px-2 py-2 rounded-tl-md">Detalle</th>
+                        <th class="px-2 py-2 rounded-tl-md">Proveedor</th>
+                        <th class="px-2 py-2 rounded-tl-md">Cantidad</th>
+                        <th class="px-2 py-2 rounded-tl-md">Estado Proveedor</th>
+                        <th class="px-2 py-2 rounded-tl-md">Fecha Pedido</th>
+                        <th class="px-2 py-2 rounded-tl-md">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($items as $item)
+                        <tr class="text-left text-sm hover:bg-light-blue">
+                            <td class="border-b border-t border-light-blue px-2 py-2">{{ $item->id_order_item }}</td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-mono font-medium">
+                                    {{ $item->order?->order_code ?? '-' }}
+                                </span>
+                            </td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                @if ($item->type_order?->value === 'set')
+                                    @if ($item->set?->only_in_set)
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Set
+                                            Obligatorio</span>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700">Set
+                                            Opcional</span>
+                                    @endif
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-indigo-100 text-indigo-700">Set Opcional</span>
+                                    @if ($item->id_set)
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">Producto
+                                            de Set</span>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700">Producto
+                                            Individual</span>
+                                    @endif
                                 @endif
-                            @else
-                                @if ($item->id_set)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">Producto de Set</span>
+                            </td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                @if ($item->type_order?->value === 'set')
+                                    <div>
+                                        <div class="font-medium">{{ $item->set?->name ?? '-' }}</div>
+                                        <div class="text-xs text-gray-500">
+                                            @if ($item->set?->only_in_set)
+                                                Set completo obligatorio
+                                            @else
+                                                Contiene {{ $item->children->count() }} productos (opcional)
+                                            @endif
+                                        </div>
+                                    </div>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-100 text-emerald-700">Producto Individual</span>
-                                @endif
-                            @endif
-                        </td>
-                        <td class="px-4 py-2">
-                            @if ($item->type_order?->value === 'set')
-                                <div>
-                                    <div class="font-medium">{{ $item->set?->name ?? '-' }}</div>
-                                    <div class="text-xs text-gray-500">
-                                        @if ($item->set?->only_in_set)
-                                            Set completo obligatorio
+                                    <div>
+                                        <div class="font-medium">{{ $item->product?->name ?? '-' }}</div>
+                                        @if ($item->id_set)
+                                            <div class="text-xs text-gray-500">del set: {{ $item->set?->name ?? '-' }}
+                                            </div>
                                         @else
-                                            Contiene {{ $item->children->count() }} productos (opcional)
+                                            <div class="text-xs text-gray-500">Producto individual</div>
+                                        @endif
+                                        @if ($showCustoms && $item->is_customized && $item->custom_text && is_array($item->custom_text))
+                                            <div class="mt-1 p-1 bg-green-50 rounded border border-green-200">
+                                                <div class="text-xs font-medium text-green-700 mb-1">Personalizaciones:
+                                                </div>
+                                                @foreach ($item->custom_text as $custom)
+                                                    @if (!empty(trim($custom)))
+                                                        <div class="text-xs text-green-600">• {{ trim($custom) }}
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
                                         @endif
                                     </div>
-                                </div>
-                            @else
-                                <div>
-                                    <div class="font-medium">{{ $item->product?->name ?? '-' }}</div>
-                                    @if ($item->id_set)
-                                        <div class="text-xs text-gray-500">del set: {{ $item->set?->name ?? '-' }}</div>
-                                    @else
-                                        <div class="text-xs text-gray-500">Producto individual</div>
-                                    @endif
-                                    @if ($showCustoms && $item->is_customized && $item->custom_text && is_array($item->custom_text))
-                                        <div class="mt-1 p-1 bg-green-50 rounded border border-green-200">
-                                            <div class="text-xs font-medium text-green-700 mb-1">Personalizaciones:</div>
-                                            @foreach ($item->custom_text as $custom)
-                                                @if (!empty(trim($custom)))
-                                                    <div class="text-xs text-green-600">• {{ trim($custom) }}</div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                            @endif
-                        </td>
-                        <td class="px-4 py-2">
-                            @if ($item->type_order?->value === 'set')
-                                {{ $item->set?->supplier?->name ?? '-' }}
-                            @else
-                                {{ $item->product?->supplier?->name ?? '-' }}
-                            @endif
-                        </td>
-                        <td class="px-4 py-2">
-                            {{ $item->quantity }}
-                            @if ($item->is_customized && $item->custom_text && is_array($item->custom_text) && count(array_filter($item->custom_text, 'trim')) > 0)
-                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
-                                    Personalizado
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-2">
-                            @if ($item->type_order?->value === 'product')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs 
-                                    @if($item->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
-                                    @elseif($item->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
-                                    @elseif($item->supplier_status?->value === 'delivered') bg-green-100 text-green-700
-                                    @endif">
-                                    {{ App\Enums\SupplierOrderStatus::labels()[$item->supplier_status?->value ?? 'not_ordered'] }}
-                                </span>
-                            @elseif ($item->type_order?->value === 'set')
-                                @if ($item->set?->only_in_set)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">
-                                        Pendiente pedido completo
-                                    </span>
+                                @endif
+                            </td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                @if ($item->type_order?->value === 'set')
+                                    {{ $item->set?->supplier?->name ?? '-' }}
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700">
-                                        Ver productos individuales
+                                    {{ $item->product?->supplier?->name ?? '-' }}
+                                @endif
+                            </td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                {{ $item->quantity }}
+                                @if (
+                                    $item->is_customized &&
+                                        $item->custom_text &&
+                                        is_array($item->custom_text) &&
+                                        count(array_filter($item->custom_text, 'trim')) > 0)
+                                    <span
+                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 ml-2">
+                                        Personalizado
                                     </span>
                                 @endif
-                            @else
-                                <span class="text-gray-400 text-xs">-</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-2">{{ $item->supplier_order_date?->format('Y-m-d') ?? '-' }}</td>
-                        <td class="px-4 py-2">
-                            @if ($item->type_order?->value === 'product')
-                                <div class="flex gap-2">
-                                    @if($item->supplier_status?->value === 'not_ordered')
-                                        <button wire:click="markAsOrdered({{ $item->id_order_item }})" class="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Marcar como pedido</button>
-                                    @elseif($item->supplier_status?->value === 'ordered')
-                                        <button wire:click="markAsDelivered({{ $item->id_order_item }})" class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Marcar como entregado</button>
+                            </td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                @if ($item->type_order?->value === 'product')
+                                    <span
+                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                                    @if ($item->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
+                                    @elseif($item->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
+                                    @elseif($item->supplier_status?->value === 'delivered') bg-green-100 text-green-700 @endif">
+                                        {{ App\Enums\SupplierOrderStatus::labels()[$item->supplier_status?->value ?? 'not_ordered'] }}
+                                    </span>
+                                @elseif ($item->type_order?->value === 'set')
+                                    @if ($item->set?->only_in_set)
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">
+                                            Pendiente pedido completo
+                                        </span>
                                     @else
-                                        <span class="text-green-600 text-xs font-medium">Entregado</span>
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700">
+                                            Ver productos individuales
+                                        </span>
                                     @endif
-                                </div>
-                            @elseif ($item->type_order?->value === 'set' && $item->set?->only_in_set)
-                                <div class="flex gap-2">
-                                    <button wire:click="markSetAsOrdered({{ $item->id_order_item }})" class="px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 text-xs">Pedir set completo</button>
-                                </div>
-                            @else
-                                <span class="text-gray-400 text-xs">-</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">No hay items</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                                @else
+                                    <span class="text-gray-400 text-xs">-</span>
+                                @endif
+                            </td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">{{ $item->supplier_order_date?->format('Y-m-d') ?? '-' }}</td>
+                            <td class="border-b border-t border-light-blue px-2 py-2">
+                                @if ($item->type_order?->value === 'product')
+                                    <div class="flex gap-2">
+                                        @if ($item->supplier_status?->value === 'not_ordered')
+                                            <button wire:click="markAsOrdered({{ $item->id_order_item }})"
+                                                class="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-xs">Marcar
+                                                como pedido</button>
+                                        @elseif($item->supplier_status?->value === 'ordered')
+                                            <button wire:click="markAsDelivered({{ $item->id_order_item }})"
+                                                class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Marcar
+                                                como entregado</button>
+                                        @else
+                                            <span class="text-green-600 text-xs font-medium">Entregado</span>
+                                        @endif
+                                    </div>
+                                @elseif ($item->type_order?->value === 'set' && $item->set?->only_in_set)
+                                    <div class="flex gap-2">
+                                        <button wire:click="markSetAsOrdered({{ $item->id_order_item }})"
+                                            class="px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 text-xs">Pedir
+                                            set completo</button>
+                                    </div>
+                                @else
+                                    <span class="text-gray-400 text-xs">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="px-4 py-6 text-center text-gray-500">No hay items</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         @endif
     </div>
 
