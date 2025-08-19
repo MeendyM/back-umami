@@ -8,16 +8,42 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\FounderInvitation;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 
 class AuthGoogleApiController extends Controller
 {
   public function callback(Request $request)
     {
+        Log::info('Google Auth Callback - Inicio', ['all_params' => $request->all()]);
+        
         try {
+            // Verificar si Google envió un error
+            if ($request->has('error')) {
+                Log::error('Google Auth Callback - Error de Google', [
+                    'error' => $request->input('error'),
+                    'error_description' => $request->input('error_description'),
+                    'state' => $request->input('state')
+                ]);
+                throw new CustomException('Error de autenticación con Google: ' . $request->input('error_description', $request->input('error')));
+            }
+
             $code = $request->input('code');
             $url = $request->input('state', '');
+            
+            if (!$code) {
+                Log::error('Google Auth Callback - Código de autorización faltante');
+                throw new CustomException('Código de autorización faltante');
+            }
+            
+            Log::info('Google Auth Callback - Parámetros', [
+                'code_presente' => !empty($code),
+                'state_url' => $url,
+                'codigo_longitud' => strlen($code ?? '')
+            ]);
+            
             logger()->info('Google callback URL: ' . $url);
+            
             $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
                 'code' => $code,
                 'client_id' => env('GOOGLE_CLIENT_ID'),
@@ -26,7 +52,16 @@ class AuthGoogleApiController extends Controller
                 'grant_type' => 'authorization_code',
             ]);
 
+            Log::info('Google Token Exchange', [
+                'status' => $response->status(),
+                'response_keys' => array_keys($response->json() ?? [])
+            ]);
+
             if ($response->failed()) {
+                Log::error('Error obteniendo token de Google', [
+                    'status' => $response->status(),
+                    'response' => $response->json()
+                ]);
                 throw new CustomException('No se pudo obtener el token de acceso.');
             }
 
@@ -34,12 +69,26 @@ class AuthGoogleApiController extends Controller
 
             $info = Http::withToken($data['access_token'])->get('https://www.googleapis.com/userinfo/v2/me');
 
+            Log::info('Google User Info Request', [
+                'status' => $info->status(),
+                'has_email' => isset($info->json()['email'])
+            ]);
+
             if ($info->failed()) {
+                Log::error('Error obteniendo info de usuario', [
+                    'status' => $info->status(),
+                    'response' => $info->json()
+                ]);
                 throw new CustomException('No se pudo obtener la información del usuario.');
             }
 
             $email = $info['email'];
             $name = $info['name'];
+
+            Log::info('Datos del usuario obtenidos', [
+                'email' => $email,
+                'name' => $name
+            ]);
 
             $user = $this->createOrUpdateUser($email, $name, $data);
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -48,11 +97,26 @@ class AuthGoogleApiController extends Controller
             $user->save();
            // dd($token);
 
+            Log::info('Google Auth Success', [
+                'user_id' => $user->id_user,
+                'redirect_url' => $url
+            ]);
+
             $redirectUrl = $url . "?token=" . $token;
             return redirect($redirectUrl);
         } catch (CustomException $e) {
+            Log::error('CustomException en Google Auth', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['message' => $e->getMessage()], 400);
         } catch (\Throwable $th) {
+            Log::error('Error inesperado en Google Auth', [
+                'message' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine(),
+                'trace' => $th->getTraceAsString()
+            ]);
             return response()->json([
                 'message' => 'Error en la solicitud. Por favor, vuelva a intentarlo más tarde.'
             ], 400);
@@ -110,8 +174,15 @@ class AuthGoogleApiController extends Controller
 
     public function login(Request $request)
     {
+        Log::info('Google Auth Login - Inicio', ['all_params' => $request->all()]);
 
         $r = $request->input('r', '');
+
+        Log::info('Google Auth Login - Parámetros', [
+            'redirect_url' => $r,
+            'google_client_id' => env('GOOGLE_CLIENT_ID'),
+            'google_redirect_uri' => env('GOOGLE_REDIRECT_URI')
+        ]);
 
         $scopes = [
             'https://www.googleapis.com/auth/userinfo.email',
@@ -126,6 +197,8 @@ class AuthGoogleApiController extends Controller
             'prompt' => 'consent',
             'state' => $r,
         ]);
+
+        Log::info('Google Auth Login - URL generada', ['auth_url' => $url]);
 
         return redirect($url);
     }
@@ -166,37 +239,59 @@ class AuthGoogleApiController extends Controller
 
     public function createOrUpdateUser($email, $name, $data)
     {
-        logger()->info('Attempting to create or update user', ['email' => $email, 'name' => $name]);
+        Log::info('createOrUpdateUser - Inicio', [
+            'email' => $email, 
+            'name' => $name,
+            'has_data' => !empty($data)
+        ]);
 
-        $user = User::where('email', $email)->first();
+        try {
+            $user = User::where('email', $email)->first();
 
-        if (!$user) {
-            logger()->info('User not found, creating new user', ['email' => $email]);
-            $user = User::create([
-                'email' => $email,
-                'name' => $name,
-                'google_data' => $data,
-                'type' => 'student',
-                'password' => 'password', // No password for Google users
-                'email_verified_at' => now(), // Email verificado automáticamente por Google
-            ]);
-            logger()->info('New user created successfully with verified email', ['user_id' => $user->id_user, 'email' => $email]);
-        } else {
-            logger()->info('User found, updating google_data', ['user_id' => $user->id_user, 'email' => $email]);
-            
-            // Actualizar datos de Google
-            $user->google_data = $data;
-            
-            // Si el email no estaba verificado, verificarlo ahora (Google ya lo verificó)
-            if (!$user->email_verified_at) {
-                $user->email_verified_at = now();
-                logger()->info('Email verified automatically via Google', ['user_id' => $user->id_user]);
+            if (!$user) {
+                Log::info('createOrUpdateUser - Usuario no encontrado, creando nuevo', ['email' => $email]);
+                
+                $user = User::create([
+                    'email' => $email,
+                    'name' => $name,
+                    'google_data' => $data,
+                    'type' => 'student',
+                    'password' => 'password', // No password for Google users
+                    'email_verified_at' => now(), // Email verificado automáticamente por Google
+                ]);
+                
+                Log::info('createOrUpdateUser - Usuario creado exitosamente', [
+                    'user_id' => $user->id_user, 
+                    'email' => $email
+                ]);
+            } else {
+                Log::info('createOrUpdateUser - Usuario encontrado, actualizando', [
+                    'user_id' => $user->id_user, 
+                    'email' => $email,
+                    'is_suspended' => $user->is_suspend ?? false
+                ]);
+                
+                // Actualizar datos de Google
+                $user->google_data = $data;
+                
+                // Si el email no estaba verificado, verificarlo ahora (Google ya lo verificó)
+                if (!$user->email_verified_at) {
+                    $user->email_verified_at = now();
+                    Log::info('createOrUpdateUser - Email verificado automáticamente', ['user_id' => $user->id_user]);
+                }
+                
+                $user->save();
+                Log::info('createOrUpdateUser - Usuario actualizado exitosamente', ['user_id' => $user->id_user]);
             }
-            
-            $user->save();
-            logger()->info('User updated successfully', ['user_id' => $user->id_user]);
-        }
 
-        return $user;
+            return $user;
+        } catch (\Exception $e) {
+            Log::error('createOrUpdateUser - Error', [
+                'email' => $email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 }
