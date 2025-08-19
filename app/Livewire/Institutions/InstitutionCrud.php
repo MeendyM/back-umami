@@ -5,6 +5,7 @@ namespace App\Livewire\Institutions;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Institution;
+use Livewire\Attributes\On;
 
 class InstitutionCrud extends Component
 {
@@ -26,6 +27,12 @@ class InstitutionCrud extends Component
         $this->resetPage();
     }
 
+    #[On('update-institution')]
+    public function updateInstitutions()
+    {
+        $this->resetPage(); // reiniciar a la página 1 al actualizar instituciones
+    }
+
     public function create()
     {
         $this->resetForm();
@@ -41,25 +48,6 @@ class InstitutionCrud extends Component
         
         // Actualizar regla de validación para edición
         $this->rules['name'] = 'required|string|max:255|unique:institutions,name,' . $id . ',id_institution';
-    }
-
-    public function save()
-    {
-        $this->validate();
-
-        if ($this->editingId) {
-            // Actualizar
-            $institution = Institution::findOrFail($this->editingId);
-            $institution->update(['name' => $this->name]);
-            session()->flash('message', 'Institución actualizada correctamente.');
-        } else {
-            // Crear
-            Institution::create(['name' => $this->name]);
-            session()->flash('message', 'Institución creada correctamente.');
-        }
-
-        $this->resetForm();
-        $this->showModal = false;
     }
 
     public function delete($id)

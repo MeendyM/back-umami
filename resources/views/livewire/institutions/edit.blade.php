@@ -1,0 +1,29 @@
+<div>
+    <x-modal-header wire:model="modalEdit" title="Editar institución">
+        <form wire:submit.prevent="submit">
+            <div class="space-y-4">
+                {{-- Nombre --}}
+                <div>
+                    <x-input-form input="name" placeholder="Nombre de la institución">
+                        <x-texts.text-small>Nombre</x-texts.text-small>
+                    </x-input-form>
+                    @error('name')
+                        <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                    @enderror
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <x-slot name="footer" class="space-x-1 space-y-3 flex flex-col">
+                <x-primary-button wire:loading.attr="disabled" wire:click="update">
+                    <x-btns.loading wire:loading />
+                    Actualizar institución
+                </x-primary-button>
+                <x-secondary-button type="button" wire:click="closeModal" wire:loading.attr="disabled"
+                    wire:target="closeModal">
+                    Cancelar
+                </x-secondary-button>
+            </x-slot>
+        </form>
+    </x-modal-header>
+</div>
