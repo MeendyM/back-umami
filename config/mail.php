@@ -113,4 +113,15 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Contact Email
+    |--------------------------------------------------------------------------
+    |
+    | Email address where contact form messages will be sent.
+    |
+    */
+
+    'contact_email' => env('MAIL_CONTACT_EMAIL', 'admin@tudominio.com'),
+
 ];

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
+use App\Http\Controllers\Api\ContactApiController;
 
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReceipApiController;
@@ -24,7 +25,8 @@ Route::get('/auth/google/check', [AuthGoogleApiController::class, 'check']);
 Route::get('/auth/google/login', [AuthGoogleApiController::class, 'login']);
 Route::post('/user/forgot-password', [AuthController::class, 'forgotPassword']);
 
-
+// Formulario de contacto (público)
+Route::post('/contact', [ContactApiController::class, 'send']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -73,3 +75,4 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/sets', [SetApiController::class, 'getSets']);
 Route::get('/sets/products/{id_set}', [SetApiController::class, 'getProductsFromSets']);
+
