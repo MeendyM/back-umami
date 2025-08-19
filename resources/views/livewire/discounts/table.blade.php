@@ -37,7 +37,7 @@
             </thead>
             <tbody>
                 @foreach ($discounts as $discount)
-                    <tr class=" text-sm hover:bg-light-blue text-center">
+                    <tr class="text-left text-sm hover:bg-light-blue">
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->code }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->type }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->value }}</td>

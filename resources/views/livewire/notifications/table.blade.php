@@ -28,9 +28,9 @@
                     </th>
                     <th class="px-2 py-2">Mensaje</th>
                     <th class="px-2 py-2">Usuario</th>
-                    <th class="px-2 py-2">Leída</th>
-                    <th class="px-2 py-2">Tipo</th>
-                    <th class="px-2 py-2">Fecha</th>
+                    <th class="px-2 py-2 text-center">Leída</th>
+                    <th class="px-2 py-2 text-center">Tipo</th>
+                    <th class="px-2 py-2 text-center">Fecha</th>
                 </tr>
             </thead>
             <tbody>

@@ -1,60 +1,92 @@
 <div>
-    <button wire:click="openModal" class="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm">
-        Crear notificación
-    </button>
+    <div class="flex w-full justify-end">
+        <x-primary-button wire:click="openModal()">
+            <x-icons.create class="fill-white mr-2 w-4" />
+            <span>Agregar notificación</span>
+        </x-primary-button>
+    </div>
 
-    <x-dialog-modal wire:model="showModal">
-        <x-slot name="title">Crear notificación</x-slot>
-        <x-slot name="content">
-            <div class="mb-3">
-                <label class="block text-sm font-medium">Título</label>
-                <input type="text" wire:model.defer="title" class="w-full border rounded px-2 py-1" />
-                @error('title') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+    <x-modal-header wire:model="showModal" title="Agregar notificación">
+        <form wire:submit.prevent="save">
+
+            <div>
+                <x-input-form input="title" placeholder="Título" wire:model.defer="title">
+                    <x-texts.text-small>Título</x-texts.text-small>
+                </x-input-form>
+                @error('title')
+                    <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                @enderror
             </div>
-            <div class="mb-3">
-                <label class="block text-sm font-medium">Mensaje</label>
-                <textarea wire:model.defer="message" class="w-full border rounded px-2 py-1"></textarea>
-                @error('message') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+
+            <div>
+                <x-input-form input="message" placeholder="Mensaje" wire:model.defer="message">
+                    <x-texts.text-small>Mensaje</x-texts.text-small>
+                </x-input-form>
+                @error('message')
+                    <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                @enderror
             </div>
-            <div class="mb-3">
-                <label class="block text-sm font-medium">Tipo</label>
-                <select wire:model.defer="type" class="w-full border rounded px-2 py-1">
-                    @foreach($types as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
+
+            <div class="type">
+                <x-input-dropdown input="type" title="Tipo" placeholder="Selecciona un tipo">
+                    @foreach ($types as $value => $label)
+                        <x-input-dropdown-option
+                            value="{{ $value }}">{{ $label }}</x-input-dropdown-option>
                     @endforeach
-                </select>
+                </x-input-dropdown>
+                @error('type')
+                    <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                @enderror
             </div>
-            <div class="mb-3">
-                <label class="block text-sm font-medium">Para</label>
-                <select wire:model="target" class="w-full border rounded px-2 py-1">
-                    <option value="all">Todos los usuarios</option>
-                    <option value="user">Usuario específico</option>
-                    <option value="institution">Usuarios de una institución</option>
-                </select>
+
+            <div class="target">
+                <x-input-dropdown input="target" title="Para" placeholder="Selecciona un destinatario">
+                    <x-input-dropdown-option value="all">Todos los usuarios</x-input-dropdown-option>
+                    <x-input-dropdown-option value="user">Usuario específico</x-input-dropdown-option>
+                    <x-input-dropdown-option value="institution">Usuarios de una institución</x-input-dropdown-option>
+                </x-input-dropdown>
+                @error('target')
+                    <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                @enderror
             </div>
+
+
             <div class="mb-3">
-                @if($target === 'user')
-                    <label class="block text-sm font-medium">Usuario</label>
-                    <select wire:model.defer="user_id" class="w-full border rounded px-2 py-1">
-                        <option value="">Selecciona un usuario</option>
-                        @foreach($users as $user)
-                            <option value="{{ $user->id_user }}">{{ $user->name }}</option>
-                        @endforeach
-                    </select>
+                @if ($target === 'user')
+                    <div class="user">
+                        <x-input-dropdown input="user_id" title="Usuario" placeholder="Selecciona un usuario">
+                            @foreach ($users as $user)
+                                <x-input-dropdown-option
+                                    value="{{ $user->id_user }}">{{ $user->name }}</x-input-dropdown-option>
+                            @endforeach
+                        </x-input-dropdown>
+                        @error('user_id')
+                            <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                        @enderror
+                    </div>
                 @elseif($target === 'institution')
-                    <label class="block text-sm font-medium">Institución</label>
-                    <select wire:model.defer="institution_id" class="w-full border rounded px-2 py-1">
-                        <option value="">Selecciona una institución</option>
-                        @foreach($institutions as $inst)
-                            <option value="{{ $inst->id_institution }}">{{ $inst->name }}</option>
-                        @endforeach
-                    </select>
+                    <div class="institution">
+                        <x-input-dropdown input="institution_id" title="Institución"
+                            placeholder="Selecciona una institución">
+                            @foreach ($institutions as $inst)
+                                <x-input-dropdown-option
+                                    value="{{ $inst->id_institution }}">{{ $inst->name }}</x-input-dropdown-option>
+                            @endforeach
+                        </x-input-dropdown>
+                        @error('institution_id')
+                            <x-texts.text-error>{{ $message }}</x-texts.text-error>
+                        @enderror
+                    </div>
                 @endif
             </div>
-        </x-slot>
-        <x-slot name="footer">
-            <x-secondary-button wire:click="closeModal">Cancelar</x-secondary-button>
-            <x-button wire:click="save" class="ml-2">Crear</x-button>
-        </x-slot>
-    </x-dialog-modal>
+            <x-slot name="footer" class="space-x-1 space-y-3 flex flex-col">
+                <x-primary-button wire:loading.attr="disabled" wire:click="save">
+                    <x-btns.loading wire:loading />
+                    Enviar notificación
+                </x-primary-button>
+                <x-secondary-button wire:click="closeModal">Cancelar</x-secondary-button>
+            </x-slot>
+        </form>
+    </x-modal-header>
+
 </div>
