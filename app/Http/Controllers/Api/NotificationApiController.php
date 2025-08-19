@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class NotificationApiController extends Controller
 {
@@ -16,7 +15,6 @@ class NotificationApiController extends Controller
         
         // Obtener notificaciones que le corresponden al usuario
         $notifications = $user->notifications()
-            ->with(['sender', 'targetInstitution'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -39,7 +37,6 @@ class NotificationApiController extends Controller
         $user = $request->user();
         
         $notifications = $user->unreadNotifications()
-            ->with(['sender', 'targetInstitution'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -65,7 +62,7 @@ class NotificationApiController extends Controller
         }
 
         // Si ya está leída, no hacer nada
-        if ($notification->pivot->read_at) {
+        if ($notification->read) {
             return response()->json([
                 'message' => 'Notificación ya estaba marcada como leída',
                 'notification' => $notification
@@ -73,7 +70,8 @@ class NotificationApiController extends Controller
         }
 
         // Marcar como leída
-        $user->notifications()->updateExistingPivot($notificationId, [
+        $notification->update([
+            'read' => true,
             'read_at' => now()
         ]);
 
@@ -88,10 +86,10 @@ class NotificationApiController extends Controller
     {
         $user = $request->user();
         
-        // Obtener IDs de notificaciones no leídas
-        $unreadNotificationIds = $user->unreadNotifications()->pluck('id_notification');
+        // Obtener notificaciones no leídas del usuario
+        $unreadCount = $user->unreadNotifications()->count();
         
-        if ($unreadNotificationIds->isEmpty()) {
+        if ($unreadCount === 0) {
             return response()->json([
                 'message' => 'No hay notificaciones pendientes por leer',
                 'marked_count' => 0
@@ -99,15 +97,13 @@ class NotificationApiController extends Controller
         }
 
         // Marcar todas como leídas
-        DB::table('user_notifications')
-            ->where('user_id', $user->id_user)
-            ->whereIn('notification_id', $unreadNotificationIds)
-            ->whereNull('read_at')
-            ->update(['read_at' => now(), 'updated_at' => now()]);
+        $user->unreadNotifications()->update([
+            'read' => true
+        ]);
 
         return response()->json([
             'message' => 'Todas las notificaciones marcadas como leídas',
-            'marked_count' => $unreadNotificationIds->count()
+            'marked_count' => $unreadCount
         ]);
     }
 
@@ -130,7 +126,6 @@ class NotificationApiController extends Controller
         $user = $request->user();
         
         $notification = $user->notifications()
-            ->with(['sender', 'targetInstitution'])
             ->where('id_notification', $notificationId)
             ->first();
 
@@ -140,18 +135,13 @@ class NotificationApiController extends Controller
             ], 404);
         }
 
-        // Formatear la respuesta con información de lectura
-        $notificationData = $notification->toArray();
-        $notificationData['is_read'] = !is_null($notification->pivot->read_at);
-        $notificationData['read_at'] = $notification->pivot->read_at;
-
         return response()->json([
             'message' => 'Notificación obtenida correctamente',
-            'notification' => $notificationData
+            'notification' => $notification
         ]);
     }
 
-    // Eliminar notificación del usuario (soft delete en la tabla pivot)
+    // Eliminar notificación del usuario
     public function deleteUserNotification(Request $request, $notificationId)
     {
         $user = $request->user();
@@ -164,8 +154,8 @@ class NotificationApiController extends Controller
             ], 404);
         }
 
-        // Eliminar de la tabla pivot (el usuario ya no verá esta notificación)
-        $user->notifications()->detach($notificationId);
+        // Eliminar la notificación
+        $notification->delete();
 
         return response()->json([
             'message' => 'Notificación eliminada correctamente'

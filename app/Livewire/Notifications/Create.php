@@ -71,6 +71,11 @@ class Create extends Component
                 $users = User::where('id_institution', $this->institution_id)->get();
             }
 
+            if ($users->isEmpty()) {
+                Toaster::error('No se encontraron usuarios para enviar la notificación.');
+                return;
+            }
+
             foreach ($users as $user) {
                 Notification::create([
                     'user_id' => $user->id_user,

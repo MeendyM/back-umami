@@ -111,14 +111,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function notifications()
     {
-        return $this->belongsToMany(Notification::class, 'user_notifications', 'user_id', 'notification_id', 'id_user', 'id_notification')
-            ->withPivot('read_at')
-            ->withTimestamps();
+        return $this->hasMany(Notification::class, 'user_id', 'id_user');
     }
 
     public function unreadNotifications()
     {
-        return $this->notifications()->wherePivot('read_at', null);
+        return $this->notifications()->where('read', false);
     }
 
     public function sentNotifications()
