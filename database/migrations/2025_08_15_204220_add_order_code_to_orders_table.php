@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 
 return new class extends Migration
@@ -12,16 +13,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->string('order_code', 5)->unique()->nullable()->after('id_order');
-        });
+        // Verificar si la columna ya existe
+        if (!Schema::hasColumn('orders', 'order_code')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->string('order_code', 5)->nullable()->after('id_order');
+            });
+        }
 
         // Generar códigos para órdenes existentes
         $this->generateOrderCodesForExistingOrders();
 
+        // Agregar índice único si no existe
+        if (!$this->hasUniqueIndex('orders', 'order_code')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->unique('order_code');
+            });
+        }
+
         // Hacer el campo no nullable después de generar códigos
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('order_code', 5)->unique()->nullable(false)->change();
+            $table->string('order_code', 5)->nullable(false)->change();
         });
     }
 
@@ -58,5 +69,14 @@ return new class extends Migration
         } while (Order::where('order_code', $code)->exists());
 
         return $code;
+    }
+
+    /**
+     * Verificar si existe un índice único en una columna
+     */
+    private function hasUniqueIndex(string $table, string $column): bool
+    {
+        $indexes = DB::select("SHOW INDEX FROM {$table} WHERE Column_name = ? AND Non_unique = 0", [$column]);
+        return count($indexes) > 0;
     }
 };
