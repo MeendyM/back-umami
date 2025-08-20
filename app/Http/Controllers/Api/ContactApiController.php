@@ -32,8 +32,16 @@ class ContactApiController extends Controller
         ]);
 
         try {
-            // Enviar el correo
-            Mail::send('emails.contact', $validated, function ($mail) use ($validated) {
+            // Generar el HTML del email usando la vista
+            $emailContent = view('emails.contact', [
+                'full_name' => $validated['full_name'],
+                'email' => $validated['email'], 
+                'subject' => $validated['subject'],
+                'user_message' => $validated['message'] // Cambiar nombre para evitar conflictos
+            ])->render();
+
+            // Enviar el correo usando html()
+            Mail::html($emailContent, function ($mail) use ($validated) {
                 $mail->to(config('mail.contact_email', 'admin@tudominio.com'))
                      ->subject('Nuevo mensaje de contacto: ' . $validated['subject'])
                      ->replyTo($validated['email'], $validated['full_name']);

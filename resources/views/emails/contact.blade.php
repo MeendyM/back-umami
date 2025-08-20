@@ -69,7 +69,7 @@
         <div class="field">
             <strong>💬 Mensaje:</strong>
             <div class="message-content">
-                {!! nl2br(e($message)) !!}
+                {!! nl2br(e($user_message ?? '')) !!}
             </div>
         </div>
         
