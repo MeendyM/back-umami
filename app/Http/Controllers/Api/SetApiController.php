@@ -10,7 +10,7 @@ class SetApiController extends Controller
 {
     public function getSets()
     {
-        $sets = Set::with('products:id_product')->get(['id_set', 'name', 'description',     'only_in_set']);
+        $sets = Set::with('products:id_product')->get(['id_set', 'name', 'description', 'only_in_set']);
 
         $sets = $sets->map(function ($set) {
             return [

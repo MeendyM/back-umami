@@ -21,6 +21,7 @@ class Create extends Component
     public $name;
     public $description;
     public $search = '';
+    public $only_in_set = false;
 
     public $selected = [];
     
@@ -63,6 +64,7 @@ class Create extends Component
         $this->name = '';
         $this->description = '';
         $this->search = '';
+        $this->only_in_set = false;
         $this->selected = [];
         
         // Limpiar arrays de imágenes
@@ -181,6 +183,7 @@ class Create extends Component
                 'name' => $this->name,
                 'description' => $this->description,
                 'url_image' => $imageUrl, // Usar la imagen como imagen principal
+                'only_in_set' => $this->only_in_set,
             ]);
 
             // PASO 3: Asociar productos al set

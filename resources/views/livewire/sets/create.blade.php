@@ -30,6 +30,22 @@
                     @enderror
                 </div>
 
+                {{-- Solo en set --}}
+                <div>
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="only_in_set" 
+                               wire:model.defer="only_in_set" 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="only_in_set" class="ml-2 block text-sm text-gray-900">
+                            Solo disponible en set
+                        </label>
+                    </div>
+                    <x-texts.text-small class="text-gray-500 mt-1">
+                        Si está marcado, los productos solo podrán comprarse como parte de este set
+                    </x-texts.text-small>
+                </div>
+
                 {{-- Sección de imágenes del set --}}
                 <div>
                     <x-texts.text-small class="text-tx-black font-bold">Imágenes del set</x-texts.text-small>

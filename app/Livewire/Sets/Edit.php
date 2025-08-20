@@ -22,6 +22,7 @@ class Edit extends Component
     public $search = '';
     public $selected = [];
     public $set;
+    public $only_in_set = false;
     
     // Para la imagen del set (edición) - UNA SOLA IMAGEN
     public $existingSetImage = null;
@@ -107,6 +108,7 @@ class Edit extends Component
             $this->modalEdit = true;
             $this->name = $this->set->name;
             $this->description = $this->set->description;
+            $this->only_in_set = $this->set->only_in_set ?? false;
             $this->selected = $this->set->products->pluck('id_product')->toArray();
             
             // Limpiar imagen antes de cargar nuevos datos
@@ -194,6 +196,7 @@ class Edit extends Component
             // PASO 2: Actualizar el set
             $this->set->name = $this->name;
             $this->set->description = $this->description;
+            $this->set->only_in_set = $this->only_in_set;
             
             // PASO 3: Actualizar la imagen si hay una nueva
             if ($newImageUrl) {

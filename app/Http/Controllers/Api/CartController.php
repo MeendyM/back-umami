@@ -487,12 +487,13 @@ class CartController extends Controller
         // 2. Calcular el total
         $total = $orderItems->sum('subtotal');
 
-        // 3. Aplicar descuento si se envió código
+        // 3. Validar código de descuento si se envió
         $discountCode = $request->input('discount_code');
         $discountAmount = 0;
         $finalTotal = $total;
         $discountMessage = null;
         $discountId = null;
+        
         if ($discountCode) {
             $discountResult = app(DiscountController::class)->applyDiscount($discountCode, $userId, $total);
             if ($discountResult['valid']) {
@@ -501,7 +502,11 @@ class CartController extends Controller
                 $discountId = $discountResult['discount_id'] ?? null;
                 $discountMessage = $discountResult['message'];
             } else {
-                $discountMessage = $discountResult['message'];
+                // Si el código no es válido, no permitir crear la orden
+                return response()->json([
+                    'message' => 'Código de descuento no válido',
+                    'error' => $discountResult['message']
+                ], 400);
             }
         }
 
@@ -541,9 +546,6 @@ class CartController extends Controller
             'discount_amount' => $discountAmount,
             'discount_message' => $discountMessage,
         ];
-        if ($discountCode && !$discountAmount) {
-            $response['message'] .= ' (El código de descuento no es válido, puedes agregarlo después)';
-        }
 
         return response()->json($response);
     }
