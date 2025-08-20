@@ -37,13 +37,19 @@ class Order extends Model
     }
 
     /**
-     * Generar un código único de 5 caracteres alfanuméricos
+     * Generar un código único de 5 caracteres alfanuméricos que inicie con número
      */
     public static function generateUniqueOrderCode(): string
     {
         do {
-            // Generar código de 5 caracteres con letras y números
-            $code = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 5));
+            // Generar primer dígito (número del 1-9)
+            $firstDigit = rand(1, 9);
+            
+            // Generar 4 caracteres restantes con letras y números
+            $remainingChars = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 4));
+            
+            // Combinar para formar el código
+            $code = $firstDigit . $remainingChars;
         } while (self::where('order_code', $code)->exists());
 
         return $code;
