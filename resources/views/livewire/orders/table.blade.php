@@ -9,7 +9,7 @@
 
     <div class="flex justify-between my-3">
         <x-search class="focus:border-indigo-400 focus:ring-indigo-400">
-            Buscar por ID, total, estado o usuario...
+            Buscar por ID, código, total, estado o usuario...
         </x-search>
     </div>
 
@@ -24,6 +24,14 @@
                                 ID Orden
                             </button>
                             <x-sort-icon field="id_order" :sortField="$sortField" :sortAsc="$sortAsc" />
+                        </div>
+                    </th>
+                    <th class="px-2 py-2">
+                        <div class="flex items-center">
+                            <button wire:click="sortBy('order_code')" class="text-left">
+                                Código
+                            </button>
+                            <x-sort-icon field="order_code" :sortField="$sortField" :sortAsc="$sortAsc" />
                         </div>
                     </th>
                     <th class="px-2 py-2">
@@ -69,6 +77,9 @@
                     <tr class="text-left text-sm hover:bg-light-blue">
                         <td class="border-b border-t border-light-blue px-2 py-2 font-semibold">
                             #{{ $order->id_order }}
+                        </td>
+                        <td class="border-b border-t border-light-blue px-2 py-2 font-semibold text-blue-600">
+                            {{ $order->order_code }}
                         </td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
                             <div>

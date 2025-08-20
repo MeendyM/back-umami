@@ -47,6 +47,7 @@ class OrderItemController extends Controller
             return response()->json([
                 'message' => 'Producto agregado a la orden',
                 'order_id' => $order->id_order,
+                'order_code' => $order->order_code,
                 'total' => $order->total,
             ], 201);
         } else {
@@ -77,6 +78,7 @@ class OrderItemController extends Controller
                 return response()->json([
                     'message' => 'Producto agregado a la orden',
                     'order_id' => $order->id_order,
+                    'order_code' => $order->order_code,
                     'total' => $order->total,
                 ], 201);
             } else {
@@ -92,6 +94,7 @@ class OrderItemController extends Controller
                 return response()->json([
                     'message' => 'Producto actualizado en la orden',
                     'order_id' => $order->id_order,
+                    'order_code' => $order->order_code,
                     'total' => $order->total,
                 ], 200);
             }

@@ -66,9 +66,10 @@ class Table extends Component
                     'user_id' => $order->user->id_user,
                     'type' => \App\Enums\NotificationType::SUCCESS,
                     'title' => 'Orden pagada',
-                    'message' => 'Tu orden #' . $order->id_order . ' ha sido marcada como pagada.',
+                    'message' => 'Tu orden #' . $order->order_code . ' ha sido marcada como pagada.',
                     'data' => [
                         'order_id' => $order->id_order,
+                        'order_code' => $order->order_code,
                         'action' => 'paid',
                     ],
                 ]);
@@ -93,9 +94,10 @@ class Table extends Component
                     'user_id' => $order->user->id_user,
                     'type' => \App\Enums\NotificationType::INFO,
                     'title' => 'Pedido entregado',
-                    'message' => 'Tu pedido #' . $order->id_order . ' ha sido entregado.',
+                    'message' => 'Tu pedido #' . $order->order_code . ' ha sido entregado.',
                     'data' => [
                         'order_id' => $order->id_order,
+                        'order_code' => $order->order_code,
                         'action' => 'delivered',
                     ],
                 ]);
@@ -111,6 +113,7 @@ class Table extends Component
         $orders = Order::with(['user.institution', 'discount'])
             ->where(function ($query) {
                 $query->where('id_order', 'like', "%{$this->search}%")
+                    ->orWhere('order_code', 'like', "%{$this->search}%")
                     ->orWhere('total', 'like', "%{$this->search}%")
                     ->orWhere('status', 'like', "%{$this->search}%")
                     ->orWhereHas('user', function ($q) {

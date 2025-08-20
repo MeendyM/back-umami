@@ -541,6 +541,7 @@ class CartController extends Controller
         $response = [
             'message' => 'Orden solicitada exitosamente',
             'order_id' => $newOrder->id_order,
+            'order_code' => $newOrder->order_code,
             'total' => $total,
             'final_total' => $finalTotal,
             'discount_amount' => $discountAmount,

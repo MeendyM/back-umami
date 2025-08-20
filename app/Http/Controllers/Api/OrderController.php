@@ -15,6 +15,7 @@ class OrderController extends Controller
         $userId = $request->user()->id_user;
 
         $orders = Order::where('id_user', $userId)
+            ->select('id_order', 'order_code', 'status', 'total', 'discount_amount', 'final_total', 'created_at', 'updated_at')
             ->get();
 
         // Agregar label en español para status
@@ -31,6 +32,7 @@ class OrderController extends Controller
         $userId = $request->user()->id_user;
         $order = Order::where('id_order', $id_order)
             ->where('id_user', $userId)
+            ->select('id_order', 'order_code', 'status', 'total', 'discount_amount', 'final_total', 'created_at', 'updated_at', 'id_user', 'id_discount')
             ->with([
                 'orderItems.product',
                 'orderItems.set'
