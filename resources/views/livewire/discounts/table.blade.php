@@ -22,7 +22,7 @@
                         </div>
                     </th>
                     <th class="px-2 py-2">Tipo</th>
-                    <th class="px-2 py-2">Valor</th>
+                    <th class="px-2 py-2">Valor en %</th>
                     <th class="px-2 py-2">Mínimo de compra</th>
                     <th class="px-2 py-2">Máximo de usos</th>
                     <th class="px-2 py-2">Fecha de expiración
@@ -37,16 +37,16 @@
             </thead>
             <tbody>
                 @foreach ($discounts as $discount)
-                    <tr class="text-left text-sm hover:bg-light-blue">
+                    <tr class="text-center text-sm hover:bg-light-blue">
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->code }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->type }}</td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->value }}</td>
-                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->minimum_purchase }}</td>
+                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->value }}%</td>
+                        <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->minimum_purchase }} MXN</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $discount->max_uses }}</td>
                         <td class="border-b border-t border-light-blue px-2 py-2">
                             {{ \Carbon\Carbon::parse($discount->expires_at)->format('d-m-Y') }}</td>
 
-                        <td class="border-b border-t border-light-blue px-2 py-2 text-center text-gray">
+                        <td class="border-b border-t border-light-blue px-2 py-2 text-gray">
                             <div class="flex justify-center text-sm">
                                 <button class="hover:text-blue"
                                     wire:click="$dispatch('editDiscount', { id_discount :{{ $discount->id_discount }}} )"

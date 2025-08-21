@@ -14,7 +14,7 @@ Route::get('/', function () {
     if (Auth::check()) {
         // Verificar si el usuario autenticado es ADMIN
         if (Auth::user()->type === \App\Enums\TypeUser::ADMIN) {
-            return redirect()->route('dashboard');
+            return redirect()->route('products');
         } else {
             // Usuario autenticado pero no es ADMIN - hacer logout y mostrar mensaje
             Auth::guard('web')->logout();

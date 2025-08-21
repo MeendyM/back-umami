@@ -48,7 +48,7 @@
                 </div>
 
                 <div>
-                    <x-input-form input="type" placeholder="Tipo">
+                    <x-input-form input="type" placeholder="Ej. Escuela, Unico, Especial, ALumno">
                         <x-texts.text-small>Tipo de descuento</x-texts.text-small>
                     </x-input-form>
                     @error('type')
@@ -57,8 +57,8 @@
                 </div>
 
                 <div>
-                    <x-input-form input="value" type="number" placeholder="Ej. 10.00">
-                        <x-texts.text-small>Valor del decuento</x-texts.text-small>
+                    <x-input-form input="value" type="number" placeholder="Ej. 10">
+                        <x-texts.text-small>Valor del decuento en %</x-texts.text-small>
                     </x-input-form>
                     @error('value')
                         <x-texts.text-error>{{ $message }}</x-texts.text-error>
@@ -66,8 +66,8 @@
                 </div>
 
                 <div>
-                    <x-input-form input="minimum_purchase" type="number" placeholder="Ej. 100.00">
-                        <x-texts.text-small>Mínimo de compra</x-texts.text-small>
+                    <x-input-form input="minimum_purchase" type="number" placeholder="Ej. 100">
+                        <x-texts.text-small>Mínimo de compra en MXN</x-texts.text-small>
                     </x-input-form>
                     @error('minimum_purchase')
                         <x-texts.text-error>{{ $message }}</x-texts.text-error>
