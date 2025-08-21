@@ -1,37 +1,42 @@
 <div class="p-6">
     <!-- Header -->
     <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 space-y-4 lg:space-y-0">
-        
-            <x-search class="focus:border-indigo-400 focus:ring-indigo-400">
-                Buscar...
-            </x-search>
-        
-        <!-- Filtros -->
-        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-            <!-- Filtro de Institución -->
-            <div class="relative">
-                <select wire:model.live="institutionFilter"
-                    class="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                    <option value="">Todas las instituciones</option>
-                    <option value="sin_institucion">Sin institución</option>
-                    @foreach ($institutions as $institution)
-                        <option value="{{ $institution->id_institution }}">{{ $institution->name }}</option>
-                    @endforeach
-                </select>
-            </div>
 
-            <!-- Botón Limpiar Filtros -->
-            @if ($search || $institutionFilter)
-                <button wire:click="clearFilters"
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
-                    </svg>
-                    Limpiar
-                </button>
-            @endif
+        <x-search class="focus:border-indigo-400 focus:ring-indigo-400">
+            Buscar...
+        </x-search>
+        <div class="flex flex-row gap-3">
+            <livewire:users.create />
+            <!-- Filtros -->
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <!-- Filtro de Institución -->
+                <div class="relative">
+                    <select wire:model.live="institutionFilter"
+                        class="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">Todas las instituciones</option>
+                        <option value="sin_institucion">Sin institución</option>
+                        @foreach ($institutions as $institution)
+                            <option value="{{ $institution->id_institution }}">{{ $institution->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Botón Limpiar Filtros -->
+                @if ($search || $institutionFilter)
+                    <button wire:click="clearFilters"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                        Limpiar
+                    </button>
+                @endif
+            </div>
         </div>
+
+
     </div>
 
     <!-- Tabla -->

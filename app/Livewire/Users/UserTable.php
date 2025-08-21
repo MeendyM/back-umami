@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\User;
 use App\Models\Institution;
+use Livewire\Attributes\On;
 
 class UserTable extends Component
 {
@@ -31,6 +32,12 @@ class UserTable extends Component
         $this->search = '';
         $this->institutionFilter = '';
         $this->resetPage();
+    }
+
+    #[On('update-user')]
+    public function updateUsers()
+    {
+        $this->resetPage(); // reiniciar a la página 1 al actualizar usuarios
     }
 
     public function render()
