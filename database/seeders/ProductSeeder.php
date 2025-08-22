@@ -2,67 +2,127 @@
 
 namespace Database\Seeders;
 
-use App\Enums\CategoryProduct;
-use Illuminate\Database\Seeder;
 use App\Models\Product;
+use App\Models\Set;
 use App\Models\Supplier;
-use App\Models\Category;
+use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
 {
-    public function run(): void
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
     {
-        // Obtener proveedores y categorías
-        $suppliers = Supplier::all();
+        $victorinoxSupplier = Supplier::where('name', 'Victorinox')->first();
+        $paqueteBasico = Set::where('name', 'Paquete Basico')->first();
+        $paqueteV0001266 = Set::where('name', 'Paquete V0001266')->first();
+        $setTriA = Set::where('name', 'Set TriA')->first();
+        $paqueteComplementario = Set::where('name', 'Paquete Complementario')->first();
 
-        // Asegúrate de tener por lo menos un proveedor y una categoría en la base de datos
-        if ($suppliers->isEmpty()) {
-            $this->command->info('No hay proveedores o categorías para asignar productos');
-            return;
+        // Products for Paquete Basico
+        $productsBasico = [
+            'Funda porta cuchillos en nylon, para chef reforzado' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic formador curvo, 6cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic mondador punta, 8cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo para chef 25cm, mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Pelapapas negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Afilador duo' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+        ];
+
+        foreach ($productsBasico as $name => $data) {
+            $product = Product::create([
+                'name' => $name,
+                'description' => $data['description'],
+                'price' => $data['price'],
+                'url_imagen' => [],
+                'id_supplier' => $victorinoxSupplier->id_supplier,
+                'only_in_set' => $data['only_in_set'],
+            ]);
+            $paqueteBasico->products()->attach($product->id_product);
         }
 
-        // Crear productos
-        Product::create([
-            'name' => 'Cuchillo de Chef 8" Profesional',
-            'description' => 'Cuchillo profesional para chef, hoja de 8 pulgadas, acero inoxidable.',
-            'price' => 120.00,
-            'id_supplier' => $suppliers->first()->id_supplier, // Asignar primer proveedor
-            'id_category' => 1, // Asignar categoría de cuchillos
-            'is_customized' => true // No es personalizado
+        // Products for Paquete V0001266
+        $productsV0001266 = [
+            'Funda porta cuchillos en nylon, para chef reforzado' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic formador curvo, 6cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic mondador punta, 8cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo filetero flexible 20cm, mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo deshuesador recto 15cm, fibrox negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo para pan dentado 21cm, mango nylon, blister' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo para chef 25cm, mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Pelapapas negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            '5710-300 (7.8513) Chaira redonda 12" mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+        ];
 
-        ]);
+        foreach ($productsV0001266 as $name => $data) {
+            $product = Product::create([
+                'name' => $name,
+                'description' => $data['description'],
+                'price' => $data['price'],
+                'url_imagen' => [],
+                'id_supplier' => $victorinoxSupplier->id_supplier,
+                'only_in_set' => $data['only_in_set'],
+            ]);
+            $paqueteV0001266->products()->attach($product->id_product);
+        }
 
-        Product::create([
-            'name' => 'Cuchillo Santoku 7" Premium',
-            'description' => 'Cuchillo premium Santoku de 7 pulgadas, ideal para picar y cortar en dados.',
-            'price' => 100.00,
-            'id_supplier' => $suppliers->skip(1)->first()->id_supplier, // Asignar segundo proveedor
-            'id_category' => 1, // Asignar categoría de cuchillos
-            'is_customized' => true // No es personalizado
-        ]);
+        // Products for Set TriA
+        $productsTriA = [
+            'Funda porta cuchillos en nylon, para chef reforzado' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic formador curvo, 6cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic mondador punta, 8cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo para chef 25cm, mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo para pan dentado 21cm, mango nylon, blister' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo filetero flexible 20cm, mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Pelapapas negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Afilador duo' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+        ];
 
-        Product::create([
-            'name' => 'Set de Cuchillos - 6 Piezas',
-            'description' => 'Set de cuchillos de 6 piezas, incluye una variedad de hojas para diferentes usos.',
-            'price' => 200.00,
-            'id_supplier' => $suppliers->skip(2)->first()->id_supplier, // Asignar tercer proveedor
-            'id_category' => 1 // Asignar categoría de cuchillos
-        ]);
+        foreach ($productsTriA as $name => $data) {
+            $product = Product::create([
+                'name' => $name,
+                'description' => $data['description'],
+                'price' => $data['price'],
+                'url_imagen' => [],
+                'id_supplier' => $victorinoxSupplier->id_supplier,
+                'only_in_set' => $data['only_in_set'],
+            ]);
+            $setTriA->products()->attach($product->id_product);
+        }
 
-        Product::create([
-            'name' => 'Delantal de Cocina Profesional',
-            'description' => 'Delantal de cocina duradero y elegante para profesionales.',
-            'price' => 30.00,
-            'id_supplier' => $suppliers->skip(3)->first()->id_supplier, // Asignar cuarto proveedor
-            'id_category' => 2 // Asignar categoría de delantales
-        ]);
+        // Products for Paquete Complementario
+        $productsComplementario = [
+            'Funda reforzada' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic formador curvo, 6cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo Swiss Classic mondador punta, 8cm, negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo filetero flexible 20cm, mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo deshuesador recto 15cm, fibrox negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo para pan dentado 21cm, mango nylon, blister' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Cuchillo para chef 25cm, mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Pelapapas negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Chaira redonda 12" mango nylon negro' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Tabla para picar' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Espatula miserable 30 cm' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Termometro digital' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Espatula angular 26 cm' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Set de manga con duyas' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Batidor globo 30 cm' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+            'Descorchador' => ['description' => null, 'price' => 0, 'only_in_set' => true],
+        ];
 
-        Product::create([
-            'name' => 'Set de Sales Gourmet',
-            'description' => 'Colección de sales gourmet premium para entusiastas culinarios.',
-            'price' => 45.00,
-            'id_supplier' => $suppliers->skip(4)->first()->id_supplier, 
-            'id_category' => 3 
-        ]);
+        foreach ($productsComplementario as $name => $data) {
+            $product = Product::create([
+                'name' => $name,
+                'description' => $data['description'],
+                'price' => $data['price'],
+                'url_imagen' => [],
+                'id_supplier' => $victorinoxSupplier->id_supplier,
+                'only_in_set' => $data['only_in_set'],
+            ]);
+            $paqueteComplementario->products()->attach($product->id_product);
+        }
     }
 }
