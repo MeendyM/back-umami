@@ -43,6 +43,7 @@ class Table extends Component
     public function render()
     {
         $categories = Category::query()
+            ->where('is_deleted', false)
             ->where('name', 'like', "%{$this->search}%")
             ->orderBy($this->sortField, $this->sortAsc ? 'asc' : 'desc')
             ->paginate($this->perPage);

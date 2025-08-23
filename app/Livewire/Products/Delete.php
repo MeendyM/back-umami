@@ -26,23 +26,20 @@ class Delete extends Component
         $this->modalDelete = true;
     }
 
+    public function closeModal()
+    {
+        $this->modalDelete = false;
+    }
+
     public function deleteProduct()
     {
         DB::beginTransaction();
         try {
-            //Eliminar producto de la base de datos
-            $product = Product::find($this->productId);
-            if ($product) {
-                $product->delete();
-                DB::commit();
-                Toaster::success('Producto eliminado correctamente.');
-                $this->modalDelete = false;
-                $this->dispatch('update-product');
-            } else {
-                DB::rollBack();
-                Toaster::error('Producto no encontrado.');
-            }
-
+            Product::where('id_product', $this->productId)->update(['is_delete' => true]);
+            DB::commit();
+            Toaster::success('Producto eliminado correctamente.');
+            $this->modalDelete = false;
+            $this->dispatch('update-product');
         } catch (\Exception $e) {
             Log::info('Error al eliminar el producto: ' . $e->getMessage());
             DB::rollBack();

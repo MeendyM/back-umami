@@ -30,18 +30,20 @@
                 @foreach ($categories as $category)
                     <tr class="text-left text-sm hover:bg-light-blue">
                         <td class="border-b border-t border-light-blue px-2 py-2">{{ $category->name }}</td>
-            
+
                         <td class="border-b border-t border-light-blue px-2 py-2 text-center text-gray">
-                            <div class="flex justify-center text-sm">
-                                <button class="hover:text-blue" wire:click="$dispatch('editCategory', { id_category :{{ $category->id_category }}} )"
+                            <div class="flex justify-end text-sm">
+                                <button class="hover:text-blue"
+                                    wire:click="$dispatch('editCategory', { id_category :{{ $category->id_category }}} )"
                                     wire:loading.attr="disabled">
                                     <x-icons.edit />
                                 </button>
-                                {{-- <button wire:click="$dispatch('showDeleteProduct', {id_product :{{ $product->id_product }} } )"
+                                <button
+                                    wire:click="$dispatch('showDeleteCategory', {id_category :{{ $category->id_category }} } )"
                                     class="text-principal-100 font-bold py-2 px-1 hover:text-error-red"
                                     wire:loading.attr="disabled">
                                     <x-icons.trash />
-                                </button> --}}
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -76,6 +78,6 @@
             </x-inputs.dropdown>
         </div>
     </div>
-    {{-- <livewire:categories.delete :key="'categories.delete'" /> --}}
+    <livewire:categories.delete :key="'categories.delete'" />
     <livewire:categories.edit :key="'categories.edit'" />
 </div>

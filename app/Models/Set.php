@@ -20,6 +20,7 @@ class Set extends Model
         'price',
         'only_in_set',
         'id_supplier',
+        'is_deleted',
     ];
 
     public function products()

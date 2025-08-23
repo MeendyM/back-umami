@@ -26,14 +26,12 @@ class Create extends Component
     public $categories;
     public $images = [];
 
-    public function mount()
-    {
-        $this->suppliers = Supplier::all();
-        $this->categories = Category::all();
-    }
-
     public function render()
     {
+        // Recargar categorías y proveedores filtrados en cada render
+        $this->suppliers = Supplier::where('is_deleted', false)->get();
+        $this->categories = Category::where('is_deleted', false)->get();
+        
         return view('livewire.products.create');
     }
 
@@ -77,9 +75,6 @@ class Create extends Component
     {
         unset($this->images[$index]);
         unset($this->imagePreviewUrl[$index]);
-
-        // NO reindexamos para mantener los índices originales consistentes
-        // Los índices faltantes serán manejados correctamente en el foreach
     }
 
 

@@ -12,5 +12,8 @@ class Supplier extends Model
     protected $primaryKey = 'id_supplier';
      protected $keyType = 'int'; 
 
-    protected $fillable = ['name'];
+    protected $fillable = [
+        'name',
+        'is_deleted',
+    ];
 }
