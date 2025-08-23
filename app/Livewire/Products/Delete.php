@@ -7,6 +7,7 @@ use Livewire\Attributes\On;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Product;
+use App\Models\ProductSet;
 use Masmerise\Toaster\Toaster;
 
 class Delete extends Component
@@ -36,6 +37,14 @@ class Delete extends Component
         DB::beginTransaction();
         try {
             Product::where('id_product', $this->productId)->update(['is_delete' => true]);
+
+            Product::where('id_product', $this->productId)->update([
+                'id_category' => null,
+                'id_supplier' => null
+            ]);
+
+            ProductSet::where('id_product', $this->productId)->delete();
+
             DB::commit();
             Toaster::success('Producto eliminado correctamente.');
             $this->modalDelete = false;
