@@ -116,7 +116,7 @@ return [
     */
 
     'firebase' => [
-        'bucket' => env('BUCKET', 'tria-126f1.firebasestorage.app'),
+        'bucket' => 'tria-126f1.firebasestorage.app',
     ],
 
     /*
