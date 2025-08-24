@@ -9,7 +9,7 @@ class FirebaseStorage
 {
     function uploadFile($filePath, $remoteFileName)
     {
-        $bucket = config('services.firebase.bucket');
+        $bucket = config('app.firebase.bucket');
 
         Log::info($bucket);
 
