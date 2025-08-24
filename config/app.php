@@ -107,6 +107,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Firebase Storage Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the configuration options for Firebase Storage,
+    | including the bucket name and any other relevant settings.
+    |
+    */
+
+    'firebase' => [
+        'bucket' => env('BUCKET', 'tria-126f1.firebasestorage.app'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Maintenance Mode Driver
     |--------------------------------------------------------------------------
     |

@@ -6,7 +6,7 @@ use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Category;
 use App\Models\ProductImage;
-use App\helpers\FirebaseStorage;
+use App\Helpers\FirebaseStorage;
 use Exception;
 use Livewire\Component;
 use Livewire\WithFileUploads;

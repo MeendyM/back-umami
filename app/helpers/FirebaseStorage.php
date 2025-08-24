@@ -9,7 +9,7 @@ class FirebaseStorage
 {
     function uploadFile($filePath, $remoteFileName)
     {
-        $bucket = env('BUCKET');
+        $bucket = config('services.firebase.bucket');
 
         Log::info($bucket);
 
@@ -98,8 +98,8 @@ class FirebaseStorage
 
     function deleteFile($filePath)
     {
-        $bucket = env('BUCKET');
-        
+        $bucket = config('services.firebase.bucket');
+
         // Construir URL de Firebase Storage para eliminar
         $url = "https://firebasestorage.googleapis.com/v0/b/{$bucket}/o/" . urlencode($filePath);
 
