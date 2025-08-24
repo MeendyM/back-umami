@@ -20,9 +20,6 @@ class FirebaseStorage
         // Construir URL de Firebase Storage
         $url = "https://firebasestorage.googleapis.com/v0/b/{$bucket}/o?uploadType=media&name=products/" . urlencode($remoteFileName);
 
-        // Log the upload URL
-        Log::info("Uploading file to Firebase Storage: $url");
-
         // Iniciar cURL
         $ch = curl_init($url);
 
@@ -54,7 +51,7 @@ class FirebaseStorage
 
     function uploadFileToFolder($filePath, $remoteFileName, $folder = 'products')
     {
-        $bucket = env('BUCKET');
+        $bucket = 'tria-126f1.firebasestorage.app';
 
         // Abrir el archivo
         $fileData = file_get_contents($filePath);
