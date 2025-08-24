@@ -9,7 +9,7 @@ class FirebaseStorage
 {
     function uploadFile($filePath, $remoteFileName)
     {
-        $bucket = 'tria-126f1.firebasestorage.app';
+        $bucket = config('app.firebase.bucket');
 
         // Abrir el archivo
         $fileData = file_get_contents($filePath);
@@ -51,7 +51,7 @@ class FirebaseStorage
 
     function uploadFileToFolder($filePath, $remoteFileName, $folder = 'products')
     {
-        $bucket = 'tria-126f1.firebasestorage.app';
+        $bucket = config('app.firebase.bucket');
 
         // Abrir el archivo
         $fileData = file_get_contents($filePath);
