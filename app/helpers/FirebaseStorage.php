@@ -9,9 +9,7 @@ class FirebaseStorage
 {
     function uploadFile($filePath, $remoteFileName)
     {
-        $bucket = config('app.firebase.bucket');
-
-        Log::info($bucket);
+        $bucket = 'tria-126f1.firebasestorage.app';
 
         // Abrir el archivo
         $fileData = file_get_contents($filePath);
