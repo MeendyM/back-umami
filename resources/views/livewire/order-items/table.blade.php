@@ -759,8 +759,20 @@
                                 @elseif ($item->type_order?->value === 'set')
                                     @if ($item->set?->only_in_set)
                                         <span
-                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-orange-100 text-orange-700">
-                                            Pendiente pedido completo
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                                            @if ($item->supplier_status?->value === 'not_ordered') bg-gray-100 text-gray-700
+                                            @elseif($item->supplier_status?->value === 'ordered') bg-blue-100 text-blue-700
+                                            @elseif($item->supplier_status?->value === 'delivered') bg-green-100 text-green-700
+                                            @else bg-orange-100 text-orange-700 @endif">
+                                            @if ($item->supplier_status?->value === 'not_ordered')
+                                                Pendiente pedido completo
+                                            @elseif($item->supplier_status?->value === 'ordered')
+                                                Set pedido
+                                            @elseif($item->supplier_status?->value === 'delivered')
+                                                Set entregado
+                                            @else
+                                                Pendiente pedido completo
+                                            @endif
                                         </span>
                                     @else
                                         <span
@@ -790,9 +802,27 @@
                                     </div>
                                 @elseif ($item->type_order?->value === 'set' && $item->set?->only_in_set)
                                     <div class="flex gap-2">
-                                        <button wire:click="markSetAsOrdered({{ $item->id_order_item }})"
-                                            class="px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 text-xs">Pedir
-                                            set completo</button>
+                                        @if ($item->supplier_status?->value === 'not_ordered')
+                                            <button wire:click="markSetAsOrdered({{ $item->id_order_item }})"
+                                                class="px-3 py-1 rounded bg-purple-600 text-white hover:bg-purple-700 text-xs">Pedir
+                                                set completo</button>
+                                        @elseif($item->supplier_status?->value === 'ordered')
+                                            <button wire:click="markSetAsDelivered({{ $item->id_order_item }})"
+                                                class="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 text-xs">Marcar
+                                                set como entregado</button>
+                                            <button wire:click="markSetAsNotOrdered({{ $item->id_order_item }})"
+                                                class="px-2 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs"
+                                                onclick="return confirm('¿Estás seguro de que quieres resetear el estado del set?')">
+                                                Resetear
+                                            </button>
+                                        @else
+                                            <span class="text-green-600 text-xs font-medium">Set entregado</span>
+                                            <button wire:click="markSetAsNotOrdered({{ $item->id_order_item }})"
+                                                class="px-2 py-1 rounded bg-gray-600 text-white hover:bg-gray-700 text-xs"
+                                                onclick="return confirm('¿Estás seguro de que quieres resetear el estado del set?')">
+                                                Resetear
+                                            </button>
+                                        @endif
                                     </div>
                                 @else
                                     <span class="text-gray-400 text-xs">-</span>

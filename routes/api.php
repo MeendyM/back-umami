@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/notifications/{id}', [NotificationApiController::class, 'deleteUserNotification']);
 });
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/sets', [SetApiController::class, 'getSets']);
 Route::get('/sets/products/{id_set}', [SetApiController::class, 'getProductsFromSets']);
 
