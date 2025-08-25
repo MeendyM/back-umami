@@ -44,11 +44,25 @@ class AuthGoogleApiController extends Controller
             
             logger()->info('Google callback URL: ' . $url);
             
+            // Verificar que las variables de entorno estén configuradas
+            $clientId = env('GOOGLE_CLIENT_ID');
+            $clientSecret = env('GOOGLE_CLIENT_SECRET');
+            $redirectUri = env('GOOGLE_REDIRECT_URI');
+
+            if (!$clientId || !$clientSecret || !$redirectUri) {
+                Log::error('Google Auth Callback - Variables de entorno faltantes', [
+                    'has_client_id' => !empty($clientId),
+                    'has_client_secret' => !empty($clientSecret),
+                    'has_redirect_uri' => !empty($redirectUri)
+                ]);
+                throw new CustomException('Configuración de Google OAuth incompleta');
+            }
+            
             $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
                 'code' => $code,
-                'client_id' => env('GOOGLE_CLIENT_ID'),
-                'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-                'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
+                'client_id' => $clientId,
+                'client_secret' => $clientSecret,
+                'redirect_uri' => $redirectUri,
                 'grant_type' => 'authorization_code',
             ]);
 
@@ -178,27 +192,49 @@ class AuthGoogleApiController extends Controller
 
         $r = $request->input('r', '');
 
+        // Verificar que las variables de entorno estén configuradas
+        $clientId = env('GOOGLE_CLIENT_ID');
+        $clientSecret = env('GOOGLE_CLIENT_SECRET');
+        $redirectUri = env('GOOGLE_REDIRECT_URI');
+
+        if (!$clientId || !$clientSecret || !$redirectUri) {
+            Log::error('Google Auth Login - Variables de entorno faltantes', [
+                'has_client_id' => !empty($clientId),
+                'has_client_secret' => !empty($clientSecret),
+                'has_redirect_uri' => !empty($redirectUri)
+            ]);
+            return response()->json([
+                'message' => 'Configuración de Google OAuth incompleta. Contacta al administrador.'
+            ], 500);
+        }
+
         Log::info('Google Auth Login - Parámetros', [
             'redirect_url' => $r,
-            'google_client_id' => env('GOOGLE_CLIENT_ID'),
-            'google_redirect_uri' => env('GOOGLE_REDIRECT_URI')
+            'google_client_id' => $clientId,
+            'google_redirect_uri' => $redirectUri
         ]);
 
         $scopes = [
             'https://www.googleapis.com/auth/userinfo.email',
             'https://www.googleapis.com/auth/userinfo.profile',
         ];
-        $url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
-            'client_id' => env('GOOGLE_CLIENT_ID'),
-            'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
+        
+        $authParams = [
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
             'response_type' => 'code',
             'scope' => implode(' ', $scopes),
             'access_type' => 'offline',
             'prompt' => 'consent',
             'state' => $r,
-        ]);
+        ];
 
-        Log::info('Google Auth Login - URL generada', ['auth_url' => $url]);
+        $url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($authParams);
+
+        Log::info('Google Auth Login - URL generada', [
+            'auth_url' => $url,
+            'auth_params' => $authParams
+        ]);
 
         return redirect($url);
     }
