@@ -45,9 +45,9 @@ class AuthGoogleApiController extends Controller
             logger()->info('Google callback URL: ' . $url);
             
             // Verificar que las variables de entorno estén configuradas
-            $clientId = env('GOOGLE_CLIENT_ID');
-            $clientSecret = env('GOOGLE_CLIENT_SECRET');
-            $redirectUri = env('GOOGLE_REDIRECT_URI');
+            $clientId = config('services.google.client_id');
+            $clientSecret = config('services.google.client_secret');
+            $redirectUri = config('services.google.redirect_uri');
 
             if (!$clientId || !$clientSecret || !$redirectUri) {
                 Log::error('Google Auth Callback - Variables de entorno faltantes', [
@@ -193,9 +193,9 @@ class AuthGoogleApiController extends Controller
         $r = $request->input('r', '');
 
         // Verificar que las variables de entorno estén configuradas
-        $clientId = env('GOOGLE_CLIENT_ID');
-        $clientSecret = env('GOOGLE_CLIENT_SECRET');
-        $redirectUri = env('GOOGLE_REDIRECT_URI');
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+        $redirectUri = config('services.google.redirect_uri');
 
         if (!$clientId || !$clientSecret || !$redirectUri) {
             Log::error('Google Auth Login - Variables de entorno faltantes', [
@@ -249,8 +249,8 @@ class AuthGoogleApiController extends Controller
             }
 
             $response_refresh = Http::asForm()->post('https://oauth2.googleapis.com/token', [
-                'client_id' => env('GOOGLE_CLIENT_ID'),
-                'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+                'client_id' => config('services.google.client_id'),
+                'client_secret' => config('services.google.client_secret'),
                 'refresh_token' => $data['refresh_token'],
                 'grant_type' => 'refresh_token',
             ]);
